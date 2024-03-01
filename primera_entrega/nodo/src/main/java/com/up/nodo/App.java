@@ -5,9 +5,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 class Cliente {
     InetAddress addr;
@@ -30,7 +28,8 @@ public class App
     {
         HashMap<Cliente, Socket> conexiones = new HashMap<Cliente, Socket>(); 
 
-        ServerSocket server = new ServerSocket(31303);
+        ServerSocket server = new ServerSocket(31010);
+        System.out.println("Servidor escuchando en 127.0.0.1:31010");
 
         while (true) {
             Socket client = server.accept();
