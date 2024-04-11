@@ -6,7 +6,7 @@
 
   <groupId>com.up.nodo</groupId>
   <artifactId>nodo</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <name>nodo</name>
   <!-- FIXME change it to the project's website -->
