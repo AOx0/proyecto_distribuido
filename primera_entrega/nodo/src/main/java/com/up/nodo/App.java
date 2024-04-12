@@ -23,11 +23,9 @@ class Cliente {
 
 }
 
-public class App 
-{
-    public static void main( String[] args ) throws IOException
-    {
-        HashMap<Cliente, Socket> conexiones = new HashMap<Cliente, Socket>(); 
+public class App {
+    public static void main(String[] args) throws IOException {
+        HashMap<Cliente, Socket> conexiones = new HashMap<Cliente, Socket>();
 
         ServerSocket server = new ServerSocket(31010);
         System.out.println("Servidor escuchando en 127.0.0.1:31010");
@@ -35,7 +33,7 @@ public class App
         while (true) {
             Socket client = server.accept();
             Cliente info_cliente = new Cliente(client);
-            
+
             System.out.println("Nueva conexión de " + info_cliente);
 
             System.out.println("Mandando mensaje 'Hola desde el server!'");
