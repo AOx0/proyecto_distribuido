@@ -10,9 +10,9 @@ nodo/target/*
 # Include compiled jar for celula_servidor
 !celula_servidor/target/
 celula_servidor/target/*
-!celula_servidor/target/*-1.0.jar
+!celula_servidor/target/*.jar
 
 # Include compiled jar for celula_solicitante
 !celula_solicitante/target/
 celula_solicitante/target/*
-!celula_solicitante/target/*-1.0.jar
+!celula_solicitante/target/*.jar
