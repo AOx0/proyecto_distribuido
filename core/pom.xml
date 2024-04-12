@@ -8,10 +8,10 @@
   </parent>
 
   <groupId>com.up</groupId>
-  <artifactId>nodo</artifactId>
+  <artifactId>core</artifactId>
   <version>1.0</version>
 
-  <name>nodo</name>
+  <name>core</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
@@ -25,37 +25,8 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.up</groupId>
-      <artifactId>core</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>com.up.App</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>

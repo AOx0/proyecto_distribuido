@@ -3,12 +3,12 @@
 nodo/target/*
 !nodo/target/*-1.0.jar
 
-# Include compiled jar for celula-servidor
-!celula-servidor/target/
-celula-servidor/target/*
-!celula-servidor/target/*-1.0.jar
+# Include compiled jar for celula_servidor
+!celula_servidor/target/
+celula_servidor/target/*
+!celula_servidor/target/*-1.0.jar
 
-# Include compiled jar for celula-solicitante
-!celula-solicitante/target/
-celula-solicitante/target/*
-!celula-solicitante/target/*-1.0.jar
+# Include compiled jar for celula_solicitante
+!celula_solicitante/target/
+celula_solicitante/target/*
+!celula_solicitante/target/*-1.0.jar

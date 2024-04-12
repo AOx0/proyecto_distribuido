@@ -8,10 +8,10 @@
   </parent>
 
   <groupId>com.up</groupId>
-  <artifactId>nodo</artifactId>
+  <artifactId>celula_servidor</artifactId>
   <version>1.0</version>
 
-  <name>nodo</name>
+  <name>celula_servidor</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
@@ -25,10 +25,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.up</groupId>
-      <artifactId>core</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
