@@ -5,14 +5,19 @@
 # Include compiled jar for nodo
 !nodo/target/
 nodo/target/*
-!nodo/target/*-1.0.jar
 
 # Include compiled jar for celula_servidor
 !celula_servidor/target/
 celula_servidor/target/*
-!celula_servidor/target/*.jar
 
 # Include compiled jar for celula_solicitante
 !celula_solicitante/target/
 celula_solicitante/target/*
-!celula_solicitante/target/*.jar
+
+!core/target/
+core/target/*
+
+# !celula_servidor/target/*.jar
+# !nodo/target/*-1.0.jar
+# !core/target/*.jar
+# !celula_solicitante/target/*.jar
