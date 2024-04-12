@@ -1,3 +1,7 @@
+.settings
+.classpath
+.project
+
 # Include compiled jar for nodo
 !nodo/target/
 nodo/target/*
