@@ -4,11 +4,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.up.celula_servidor</groupId>
-  <artifactId>celula_servidor</artifactId>
+  <groupId>com.up.celula_solicitante</groupId>
+  <artifactId>celula_solicitante</artifactId>
   <version>1.0</version>
 
-  <name>celula_servidor</name>
+  <name>celula_solicitante</name>
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
@@ -60,7 +60,7 @@
                   <manifest>
                       <addClasspath>true</addClasspath>
                       <classpathPrefix>lib/</classpathPrefix>
-                      <mainClass>com.up.celula_servidor.App</mainClass>
+                      <mainClass>com.up.celula_solicitante.App</mainClass>
                   </manifest>
               </archive>
           </configuration> 
