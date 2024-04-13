@@ -36,7 +36,7 @@ public class App {
 
         try {
             Random r = new Random();
-            long sleep = Math.abs(r.nextLong()) % 10000;
+            long sleep = Math.abs(r.nextLong()) % 5000;
             System.out.println("Sleeping " + sleep);
 			Thread.sleep(sleep);
 		} catch (InterruptedException e) {
