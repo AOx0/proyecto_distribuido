@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class App {
-    public static void main(String[] args) throws IOException, NoAvailablePort {
+    public static void main(String[] args) throws IOException, NoAvailablePort, InterruptedException {
         String ruta_config = getRutaConfigArgs(args);
 
         Config config = null;
@@ -34,63 +34,39 @@ public class App {
                 .collect(Collectors.toList());
         String addr = config.get_section_value("nodes", "addr").get(0);
 
-        try {
-            Random r = new Random();
-            long sleep = Math.abs(r.nextLong()) % 5000;
-            System.out.println("Sleeping " + sleep);
-			Thread.sleep(sleep);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+        long delay = Math.abs(new Random().nextLong()) % 5000;
+        System.out.println("Sleeping " + delay);
+        Thread.sleep(delay);
 
         ServerSocket server = createServerSocket(ports);
-        Thread a = new Thread(() -> {
-            while (true) {
-                System.out.println("Trying");
-                for (Integer port : ports) {
-                    if (port == server.getLocalPort()
-                            || conexiones.nodos.keySet().stream().anyMatch(k -> k.getId() == port))
-                        continue;
-                    System.out.println("    Trying " + port);
-                    try {
-                        Socket socket = new Socket(addr, port);
+        for (Integer port : ports) {
+            if (port == server.getLocalPort()
+                    || conexiones.nodos.keySet().stream().anyMatch(k -> k.getId() == port))
+                continue;
+            try {
+                Socket socket = new Socket(addr, port);
 
-                        socket
-                                .getOutputStream()
-                                .write(
-                                        MessageBuilder
-                                                .Identificacion(TipoConexion.Nodo, server.getLocalPort())
-                                                .toBytes());
+                socket
+                        .getOutputStream()
+                        .write(
+                                MessageBuilder
+                                        .Identificacion(TipoConexion.Nodo, server.getLocalPort())
+                                        .toBytes());
 
-                        InputStream in = socket.getInputStream();
-                        Conexion conexion = new Conexion(socket, new Message(in));
-                        if (!conexion.isValid() ||
-                                !conexiones.addContection(conexion, socket)) {
-                            socket.close();
-                            continue;
-                        }
-
-                        Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
-                        handle.setName("Handle " + conexion);
-                        handle.start();
-                    } catch (IOException e) {
-                    }
+                InputStream in = socket.getInputStream();
+                Conexion conexion = new Conexion(socket, new Message(in));
+                if (!conexion.isValid() ||
+                        !conexiones.addContection(conexion, socket)) {
+                    socket.close();
+                    continue;
                 }
 
-                try {
-                    if (conexiones.nodos.keySet().size() == ports.size() - 1) {
-                        System.out.println("Full, waiting 60 s");
-                        Thread.sleep(30000);
-                    } else {
-                        Thread.sleep(5000);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
+                handle.setName("Handle " + conexion);
+                handle.start();
+            } catch (IOException e) {
             }
-        });
-        a.setName("Explorer");
-        a.start();
+        }
 
         Thread acceptor = new Thread(() -> {
             while (true) {
@@ -249,7 +225,7 @@ class Conexiones {
     public boolean addContection(Conexion con, Socket socket) {
         switch (con.getTipo()) {
             case TipoConexion.Nodo:
-                if (this.nodos.keySet().stream().anyMatch(x ->  x.getId() == con.getId())) {
+                if (this.nodos.keySet().stream().anyMatch(x -> x.getId() == con.getId())) {
                     return false;
                 }
                 System.out.println("Nuevo nodo: " + con);

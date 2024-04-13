@@ -1,20 +1,20 @@
 layout {
-    tab split_direction="horizontal" {
-        pane command="just" {
-            args "nodo"
-            // borderless true
-        }
-        pane command="just" {
-            args "nodo"
-            // borderless true
-        }
-        pane command="just" {
-            args "nodo"
-            // borderless true
-        }
-        pane command="just" {
-            args "nodo"
-            // borderless true
-        }
+    // pane split_direction="vertical" {
+        // pane split_direction="horizontal" {
+    pane command="just" {
+        args "nodo"
     }
+    pane command="just" {
+        args "nodo"
+    }
+        // }
+        // pane split_direction="horizontal" {
+    pane command="just" {
+        args "nodo"
+    }
+    pane command="just" {
+        args "nodo"
+    }
+        // }
+    // }
 }

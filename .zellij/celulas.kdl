@@ -1,0 +1,20 @@
+layout {
+    pane split_direction="vertical" {
+        pane split_direction="horizontal" {
+            pane command="just" {
+                args "consumer" "3333"
+            }
+            pane command="just" {
+                args "consumer" "3334"
+            }
+            pane command="just" {
+                args "consumer" "3335"
+            }
+        }
+        pane split_direction="horizontal" {
+            pane command="just" {
+                args "server" "3336"
+            }
+        }
+    }
+}
