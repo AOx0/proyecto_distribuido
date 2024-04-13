@@ -14,12 +14,16 @@ public class Message {
         this.tipo = java.nio.ByteBuffer.wrap(in.readNBytes(2)).getShort();
         this.len = java.nio.ByteBuffer.wrap(in.readNBytes(4)).getInt();
         this.msg = in.readNBytes(len);
+
+        // System.out.println("Reading" + this);
     }
 
     public Message(short tipo, byte msg[]) {
         this.tipo = tipo;
         this.msg = msg;
         this.len = msg.length;
+
+        // System.out.println("Creating " + this);
     }
 
     public byte[] toBytes() {

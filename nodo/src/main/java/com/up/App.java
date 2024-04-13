@@ -4,16 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
-public class App 
-{
+public class App {
     public static void main(String[] args) throws IOException, NoAvailablePort {
         String ruta_config = getRutaConfigArgs(args);
 
@@ -36,73 +34,93 @@ public class App
                 .collect(Collectors.toList());
         String addr = config.get_section_value("nodes", "addr").get(0);
 
+        try {
+            Random r = new Random();
+            long sleep = Math.abs(r.nextLong()) % 10000;
+            System.out.println("Sleeping " + sleep);
+			Thread.sleep(sleep);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
         ServerSocket server = createServerSocket(ports);
-        for (Integer port : ports) {
-            if (port == server.getLocalPort())
-                continue;
-            try {
-                Socket socket = new Socket(addr, port);
-                Conexion conexion = new Conexion(socket);
+        Thread a = new Thread(() -> {
+            while (true) {
+                System.out.println("Trying");
+                for (Integer port : ports) {
+                    if (port == server.getLocalPort()
+                            || conexiones.nodos.keySet().stream().anyMatch(k -> k.getId() == port))
+                        continue;
+                    System.out.println("    Trying " + port);
+                    try {
+                        Socket socket = new Socket(addr, port);
 
-                socket
-                        .getOutputStream()
-                        .write(
-                                MessageBuilder
-                                        .Identificacion(TipoConexion.Nodo)
-                                        .toBytes());
+                        socket
+                                .getOutputStream()
+                                .write(
+                                        MessageBuilder
+                                                .Identificacion(TipoConexion.Nodo, server.getLocalPort())
+                                                .toBytes());
 
-                InputStream in = socket.getInputStream();
-                if (!conexion.setTipo(new Message(in)) ||
-                        !conexiones.addContection(conexion, socket)) {
-                    socket.close();
-                    continue;
+                        InputStream in = socket.getInputStream();
+                        Conexion conexion = new Conexion(socket, new Message(in));
+                        if (!conexion.isValid() ||
+                                !conexiones.addContection(conexion, socket)) {
+                            socket.close();
+                            continue;
+                        }
+
+                        Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
+                        handle.setName("Handle " + conexion);
+                        handle.start();
+                    } catch (IOException e) {
+                    }
                 }
-            } catch (IOException e) {
+
+                try {
+                    if (conexiones.nodos.keySet().size() == ports.size() - 1) {
+                        System.out.println("Full, waiting 60 s");
+                        Thread.sleep(30000);
+                    } else {
+                        Thread.sleep(5000);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        });
+        a.setName("Explorer");
+        a.start();
 
         Thread acceptor = new Thread(() -> {
             while (true) {
                 try {
                     Socket socket = server.accept();
-                    Conexion conexion = new Conexion(socket);
+
                     InputStream in = socket.getInputStream();
-                    if (!conexion.setTipo(new Message(in)) ||
+                    Conexion conexion = new Conexion(socket, new Message(in));
+                    if (!conexion.isValid() ||
                             !conexiones.addContection(conexion, socket)) {
                         socket.close();
                         continue;
                     }
 
                     socket
-                        .getOutputStream()
-                        .write(
-                            MessageBuilder
-                                .Identificacion(TipoConexion.Nodo)
-                                .toBytes()
-                        );
+                            .getOutputStream()
+                            .write(
+                                    MessageBuilder
+                                            .Identificacion(TipoConexion.Nodo, server.getLocalPort())
+                                            .toBytes());
 
-                    Thread handle = new Thread(() -> {
-                        while (true) {
-                            try {
-								Message ms = new Message(in);
-								System.out.println(ms);
-							} catch (IOException e) {
-								// e.printStackTrace();
-								try {
-									socket.close();
-								} catch (IOException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							}
-                        }
-                    });
+                    Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
+                    handle.setName("Handle " + conexion);
                     handle.start();
-            } catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
+        acceptor.setName("Acceptor");
         acceptor.start();
 
         try {
@@ -112,7 +130,56 @@ public class App
         }
     }
 
-    
+    private static void handle(Conexiones conexiones, Socket socket, Conexion conexion, InputStream in) {
+        while (true) {
+            try {
+                Message ms = new Message(in);
+                switch (conexion.getTipo()) {
+                    case TipoConexion.Nodo:
+                        conexiones.clientes_solicitantes.forEach((con, sock) -> {
+                            try {
+                                OutputStream out = sock.getOutputStream();
+                                out.write(ms.toBytes());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        break;
+                    case TipoConexion.CelulaServer:
+                        conexiones.nodos.forEach((con, sock) -> {
+                            try {
+                                OutputStream out = sock.getOutputStream();
+                                out.write(ms.toBytes());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        conexiones.clientes_solicitantes.forEach((con, sock) -> {
+                            try {
+                                OutputStream out = sock.getOutputStream();
+                                out.write(ms.toBytes());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        break;
+                    case TipoConexion.CelulaConsumer:
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                // e.printStackTrace();
+                try {
+                    socket.close();
+                } catch (IOException e1) {
+                    // e1.printStackTrace();
+                }
+
+                conexiones.rmConnection(conexion);
+            }
+        }
+    }
+
     public static String getRutaConfigArgs(String[] args) {
         String ruta_config = System.getenv("NODO_CONF");
 
@@ -151,23 +218,50 @@ public class App
 
 class Conexiones {
     HashMap<Conexion, Socket> nodos;
-    HashMap<Conexion, Socket> clientes;
+    HashMap<Conexion, Socket> clientes_servidores;
+    HashMap<Conexion, Socket> clientes_solicitantes;
 
     public Conexiones() {
         this.nodos = new HashMap<Conexion, Socket>();
-        this.clientes = new HashMap<Conexion, Socket>();
+        this.clientes_servidores = new HashMap<Conexion, Socket>();
+        this.clientes_solicitantes = new HashMap<Conexion, Socket>();
+    }
+
+    public void rmConnection(Conexion con) {
+        switch (con.getTipo()) {
+            case TipoConexion.Nodo:
+                System.out.println("Eliminando nodo: " + con);
+                this.nodos.remove(con);
+                break;
+            case TipoConexion.CelulaConsumer:
+                System.out.println("Eliminando celula: " + con);
+                this.clientes_solicitantes.remove(con);
+                break;
+            case TipoConexion.CelulaServer:
+                System.out.println("Eliminando celula: " + con);
+                this.clientes_servidores.remove(con);
+                break;
+            default:
+                return;
+        }
     }
 
     public boolean addContection(Conexion con, Socket socket) {
         switch (con.getTipo()) {
             case TipoConexion.Nodo:
+                if (this.nodos.keySet().stream().anyMatch(x ->  x.getId() == con.getId())) {
+                    return false;
+                }
                 System.out.println("Nuevo nodo: " + con);
                 this.nodos.put(con, socket);
                 break;
             case TipoConexion.CelulaConsumer:
+                System.out.println("Nueva celula: " + con);
+                this.clientes_solicitantes.put(con, socket);
+                break;
             case TipoConexion.CelulaServer:
                 System.out.println("Nueva celula: " + con);
-                this.clientes.put(con, socket);
+                this.clientes_servidores.put(con, socket);
                 break;
             default:
                 System.out.println("Descartando conexión no identificada\n:    " + con);

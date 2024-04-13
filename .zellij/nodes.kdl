@@ -1,0 +1,20 @@
+layout {
+    tab split_direction="horizontal" {
+        pane command="just" {
+            args "nodo"
+            // borderless true
+        }
+        pane command="just" {
+            args "nodo"
+            // borderless true
+        }
+        pane command="just" {
+            args "nodo"
+            // borderless true
+        }
+        pane command="just" {
+            args "nodo"
+            // borderless true
+        }
+    }
+}

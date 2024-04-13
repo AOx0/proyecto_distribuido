@@ -2,47 +2,42 @@ package com.up;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Conexion {
-    private InetAddress addr;
+    private int id;
     private int port;
+    private InetAddress addr;
     /// Ver `TipoConexion`
     private byte tipo;
 
-    public InetAddress getAddr() {
-        return addr;
+    public int getId() {
+        return id;
     }
 
-    public int getPort() {
-        return port;
+    public boolean isValid() {
+        return !(id == 0 || tipo == TipoConexion.Unknown);
     }
 
     public byte getTipo() {
         return tipo;
     }
 
-    public boolean setTipo(Message msg) {
-        if (msg.tipo != TipoMensaje.Identificacion)
-            return false;
-        if (msg.len != 1)
-            return false;
-        if (!TipoConexion.ValorEnRango(msg.msg[0]))
-            return false;
+    public Conexion(Socket socket, Message msg) {
+        if (msg.tipo != TipoMensaje.Identificacion || msg.len != 5 || !TipoConexion.ValorEnRango(msg.msg[0]))
+            return;
 
-        this.tipo = msg.msg[0];
-        return true;
-    }
-
-    public Conexion(Socket socket) {
-        this.addr = socket.getInetAddress();
         this.port = socket.getPort();
-        this.tipo = 0;
+        this.addr = socket.getInetAddress();
+        this.tipo = msg.msg[0];
+        this.id = java.nio.ByteBuffer.wrap(Arrays.copyOfRange(msg.msg, 1, 5)).getInt();
     }
 
     @Override
     public String toString() {
         return "Conexion { "
                 + "addr: " + this.addr + ":" + this.port
+                + " id: " + this.getId()
                 + ", tipo: " + TipoConexion.toString(this.tipo)
                 + " }";
     }
