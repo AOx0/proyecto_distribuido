@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class App {
             System.exit(1);
         }
 
-        Conexiones conexiones = new Conexiones();
+        Connections connections = new Connections();
 
         String addr = config.get_section_value("nodes", "addr");
         List<Integer> ports = config.get_section_values("nodes", "ports")
@@ -42,7 +41,7 @@ public class App {
         ServerSocket server = createServerSocket(ports);
         for (Integer port : ports) {
             if (port == server.getLocalPort()
-                    || conexiones.nodes.keySet().stream().anyMatch(k -> k.getId() == port))
+                    || connections.nodes.keySet().stream().anyMatch(k -> k.getId() == port))
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
@@ -51,12 +50,12 @@ public class App {
 
                 Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
                 Connection conexion = new Connection(socket, Messenger.read(in));
-                if (!conexion.isValid() || !conexiones.addConnection(conexion, socket)) {
+                if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
                     continue;
                 }
 
-                Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
+                Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                 handle.setName("Handle " + conexion);
                 handle.start();
             } catch (IOException e) {
@@ -70,7 +69,7 @@ public class App {
 
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     Connection conexion = new Connection(socket, Messenger.read(in));
-                    if (!conexion.isValid() || !conexiones.addConnection(conexion, socket)) {
+                    if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                         socket.close();
                         continue;
                     }
@@ -78,7 +77,7 @@ public class App {
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
 
-                    Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
+                    Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);
                     handle.start();
                 } catch (IOException e) {
@@ -96,7 +95,7 @@ public class App {
         }
     }
 
-    private static void handle(Conexiones conexiones, Socket socket, Connection conexion, DataInputStream in) {
+    private static void handle(Connections conexiones, Socket socket, Connection conexion, DataInputStream in) {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
@@ -179,62 +178,6 @@ public class App {
         if (server == null)
             throw new NoAvailablePort();
         return server;
-    }
-}
-
-class Conexiones {
-    HashMap<Connection, Socket> nodes;
-    HashMap<Connection, Socket> clients_servers;
-    HashMap<Connection, Socket> clients_requesters;
-
-    public Conexiones() {
-        this.nodes = new HashMap<Connection, Socket>();
-        this.clients_servers = new HashMap<Connection, Socket>();
-        this.clients_requesters = new HashMap<Connection, Socket>();
-    }
-
-    public void rmConnection(Connection con) {
-        switch (con.getTipo()) {
-            case ConnectionType.Node:
-                System.out.println("Removing node: " + con);
-                this.nodes.remove(con);
-                break;
-            case ConnectionType.ClientConsumer:
-                System.out.println("Removing celula: " + con);
-                this.clients_requesters.remove(con);
-                break;
-            case ConnectionType.ClientServer:
-                System.out.println("Removing celula: " + con);
-                this.clients_servers.remove(con);
-                break;
-            default:
-                return;
-        }
-    }
-
-    public boolean addConnection(Connection con, Socket socket) {
-        switch (con.getTipo()) {
-            case ConnectionType.Node:
-                if (this.nodes.keySet().stream().anyMatch(x -> x.getId() == con.getId())) {
-                    return false;
-                }
-                System.out.println("New node: " + con);
-                this.nodes.put(con, socket);
-                break;
-            case ConnectionType.ClientConsumer:
-                System.out.println("Nueva celula: " + con);
-                this.clients_requesters.put(con, socket);
-                break;
-            case ConnectionType.ClientServer:
-                System.out.println("Nueva celula: " + con);
-                this.clients_servers.put(con, socket);
-                break;
-            default:
-                System.out.println("Descartando conexión no identificada\n:    " + con);
-                return false;
-        }
-
-        return true;
     }
 }
 

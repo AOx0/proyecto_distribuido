@@ -1,5 +1,7 @@
 package com.up;
 
+import java.util.Arrays;
+
 public class Message {
     /// Ver `MessageType`
     short tipo;
@@ -19,27 +21,26 @@ public class Message {
     @Override
     public String toString() {
         String res = "Message { tipo: ";
+        res += MessageType.toString(this.tipo);
+        
         switch (this.tipo) {
             case MessageType.Identificate:
-                res += "Identificación";
+                res += ", connection: ";
+                res += ConnectionType.toString(this.msg[0]);
+                res += ", id: ";
+                res += java.nio.ByteBuffer.wrap(Arrays.copyOfRange(msg, 1, 5)).getInt();
                 break;
             case MessageType.Request:
-                res += "Request";
-                break;
             case MessageType.Response:
-                res += "Response";
-                break;
             default:
-                res += "ERR";
-                break;
+                res += ", msg: [ ";
+                for (byte b : this.msg) {
+                    res += String.format("%x ", Byte.toUnsignedInt(b));
+                }
+                res += "]";
         }
 
-        res += ", msg: [ ";
-        for (byte b : this.msg) {
-            res += String.format("%x ", Byte.toUnsignedInt(b));
-        }
-        res += "] }";
+        res += " }";
         return res;
     }
 }
-

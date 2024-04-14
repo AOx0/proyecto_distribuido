@@ -27,9 +27,11 @@ public class App
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        // while (true) {
+        System.in.read();
+
+        while (true) {
             Messenger.send(out, ident);
-        	// Thread.sleep(500);
-        // }
+        	Thread.sleep(2500);
+        }
     }
 }

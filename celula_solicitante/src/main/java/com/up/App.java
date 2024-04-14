@@ -31,9 +31,9 @@ public class App
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        // while (true) {
+        while (true) {
             Message recv = Messenger.read(in);
             System.out.println(recv);
-        // }
+        }
     }
 }
