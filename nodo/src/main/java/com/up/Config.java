@@ -8,10 +8,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-public class Config {
+class Config {
     private HashMap<String, HashMap<String, Vector<String>>> config;
 
-    public Vector<String> get_section_value(String section, String value) {
+    public Vector<String> get_section_values(String section, String value) {
         return config.get(section).get(value);
     }
 
@@ -19,7 +19,7 @@ public class Config {
         return config.get(section);
     }
 
-    public String get_first_section_value(String section, String value) {
+    public String get_section_value(String section, String value) {
         return config.get(section).get(value).get(0);
     }
 

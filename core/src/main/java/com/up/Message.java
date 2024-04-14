@@ -1,7 +1,5 @@
 package com.up;
 
-import java.nio.ByteBuffer;
-
 public class Message {
     /// Ver `MessageType`
     short tipo;
@@ -16,15 +14,6 @@ public class Message {
         this.msg = msg;
 
         // System.out.println("Creating " + this);
-    }
-
-    public byte[] toBytes() {
-        ByteBuffer b = ByteBuffer.allocate(6 + msg.length);
-        b.putShort(this.tipo);
-        b.putInt(msg.length);
-        b.put(msg);
-
-        return b.array();
     }
 
     @Override

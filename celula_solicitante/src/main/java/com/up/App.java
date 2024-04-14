@@ -25,10 +25,10 @@ public class App
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        Message ident = MessageBuilder.Identificate(TipoConexion.CelulaConsumer, Integer.valueOf(port, 10));
+        Message ident = MessageBuilder.Identificate(ConnectionType.ClientConsumer, Integer.valueOf(port, 10));
         Messenger.send(out, ident);
 
-        Conexion con = new Conexion(socket, Messenger.read(in));
+        Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
         // while (true) {

@@ -28,30 +28,29 @@ public class App {
 
         Conexiones conexiones = new Conexiones();
 
-        List<Integer> ports = config.get_section_value("nodes", "ports")
+        String addr = config.get_section_value("nodes", "addr");
+        List<Integer> ports = config.get_section_values("nodes", "ports")
                 .stream()
                 .map(v -> Integer.valueOf(v, 10))
                 .collect(Collectors.toList());
-        String addr = config.get_first_section_value("nodes", "addr");
 
         /* Random delay to enable Node sync on startup */
-        long delay = Math.abs(new Random().nextLong()) % 5000;
+        long delay = Math.abs(new Random().nextLong()) % 10000;
         System.out.println("Sleeping " + delay);
         Thread.sleep(delay);
 
         ServerSocket server = createServerSocket(ports);
         for (Integer port : ports) {
             if (port == server.getLocalPort()
-                    || conexiones.nodos.keySet().stream().anyMatch(k -> k.getId() == port))
+                    || conexiones.nodes.keySet().stream().anyMatch(k -> k.getId() == port))
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Messenger.send(out, MessageBuilder.Identificate(TipoConexion.Nodo, server.getLocalPort()));
-                Conexion conexion = new Conexion(socket, Messenger.read(in));
-
+                Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
+                Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !conexiones.addConnection(conexion, socket)) {
                     socket.close();
                     continue;
@@ -70,19 +69,14 @@ public class App {
                     Socket socket = server.accept();
 
                     DataInputStream in = new DataInputStream(socket.getInputStream());
-                    Conexion conexion = new Conexion(socket, Messenger.read(in));
-                    if (!conexion.isValid() ||
-                            !conexiones.addConnection(conexion, socket)) {
+                    Connection conexion = new Connection(socket, Messenger.read(in));
+                    if (!conexion.isValid() || !conexiones.addConnection(conexion, socket)) {
                         socket.close();
                         continue;
                     }
 
-                    socket
-                            .getOutputStream()
-                            .write(
-                                    MessageBuilder
-                                            .Identificate(TipoConexion.Nodo, server.getLocalPort())
-                                            .toBytes());
+                    DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                    Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
 
                     Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
                     handle.setName("Handle " + conexion);
@@ -102,26 +96,26 @@ public class App {
         }
     }
 
-    private static void handle(Conexiones conexiones, Socket socket, Conexion conexion, DataInputStream in) {
+    private static void handle(Conexiones conexiones, Socket socket, Connection conexion, DataInputStream in) {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
                 switch (conexion.getTipo()) {
-                    case TipoConexion.Nodo:
+                    case ConnectionType.Node:
                         conexiones.clients_requesters.forEach((con, sock) -> {
                             try {
                                 DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                out.write(ms.toBytes());
+                                Messenger.send(out, ms);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         });
                         break;
-                    case TipoConexion.CelulaServer:
-                        conexiones.nodos.forEach((con, sock) -> {
+                    case ConnectionType.ClientServer:
+                        conexiones.nodes.forEach((con, sock) -> {
                             try {
                                 DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                out.write(ms.toBytes());
+                                Messenger.send(out, ms);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -129,13 +123,13 @@ public class App {
                         conexiones.clients_requesters.forEach((con, sock) -> {
                             try {
                                 DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                out.write(ms.toBytes());
+                                Messenger.send(out, ms);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         });
                         break;
-                    case TipoConexion.CelulaConsumer:
+                    case ConnectionType.ClientConsumer:
                     default:
                         break;
                 }
@@ -189,28 +183,28 @@ public class App {
 }
 
 class Conexiones {
-    HashMap<Conexion, Socket> nodos;
-    HashMap<Conexion, Socket> clients_servers;
-    HashMap<Conexion, Socket> clients_requesters;
+    HashMap<Connection, Socket> nodes;
+    HashMap<Connection, Socket> clients_servers;
+    HashMap<Connection, Socket> clients_requesters;
 
     public Conexiones() {
-        this.nodos = new HashMap<Conexion, Socket>();
-        this.clients_servers = new HashMap<Conexion, Socket>();
-        this.clients_requesters = new HashMap<Conexion, Socket>();
+        this.nodes = new HashMap<Connection, Socket>();
+        this.clients_servers = new HashMap<Connection, Socket>();
+        this.clients_requesters = new HashMap<Connection, Socket>();
     }
 
-    public void rmConnection(Conexion con) {
+    public void rmConnection(Connection con) {
         switch (con.getTipo()) {
-            case TipoConexion.Nodo:
-                System.out.println("Eliminando nodo: " + con);
-                this.nodos.remove(con);
+            case ConnectionType.Node:
+                System.out.println("Removing node: " + con);
+                this.nodes.remove(con);
                 break;
-            case TipoConexion.CelulaConsumer:
-                System.out.println("Eliminando celula: " + con);
+            case ConnectionType.ClientConsumer:
+                System.out.println("Removing celula: " + con);
                 this.clients_requesters.remove(con);
                 break;
-            case TipoConexion.CelulaServer:
-                System.out.println("Eliminando celula: " + con);
+            case ConnectionType.ClientServer:
+                System.out.println("Removing celula: " + con);
                 this.clients_servers.remove(con);
                 break;
             default:
@@ -218,20 +212,20 @@ class Conexiones {
         }
     }
 
-    public boolean addConnection(Conexion con, Socket socket) {
+    public boolean addConnection(Connection con, Socket socket) {
         switch (con.getTipo()) {
-            case TipoConexion.Nodo:
-                if (this.nodos.keySet().stream().anyMatch(x -> x.getId() == con.getId())) {
+            case ConnectionType.Node:
+                if (this.nodes.keySet().stream().anyMatch(x -> x.getId() == con.getId())) {
                     return false;
                 }
-                System.out.println("Nuevo nodo: " + con);
-                this.nodos.put(con, socket);
+                System.out.println("New node: " + con);
+                this.nodes.put(con, socket);
                 break;
-            case TipoConexion.CelulaConsumer:
+            case ConnectionType.ClientConsumer:
                 System.out.println("Nueva celula: " + con);
                 this.clients_requesters.put(con, socket);
                 break;
-            case TipoConexion.CelulaServer:
+            case ConnectionType.ClientServer:
                 System.out.println("Nueva celula: " + con);
                 this.clients_servers.put(con, socket);
                 break;

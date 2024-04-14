@@ -4,7 +4,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 
-public class Conexion {
+public class Connection {
     private int id;
     private int port;
     private InetAddress addr;
@@ -16,15 +16,15 @@ public class Conexion {
     }
 
     public boolean isValid() {
-        return !(id == 0 || tipo == TipoConexion.Unknown);
+        return !(id == 0 || tipo == ConnectionType.Unknown);
     }
 
     public byte getTipo() {
         return tipo;
     }
 
-    public Conexion(Socket socket, Message msg) {
-        if (msg.tipo != MessageType.Identificate || msg.len() != 5 || !TipoConexion.ValorEnRango(msg.msg[0]))
+    public Connection(Socket socket, Message msg) {
+        if (msg.tipo != MessageType.Identificate || msg.len() != 5 || !ConnectionType.ValorEnRango(msg.msg[0]))
             return;
 
         this.port = socket.getPort();
@@ -38,7 +38,7 @@ public class Conexion {
         return "Conexion { "
                 + "addr: " + this.addr + ":" + this.port
                 + " id: " + this.getId()
-                + ", tipo: " + TipoConexion.toString(this.tipo)
+                + ", tipo: " + ConnectionType.toString(this.tipo)
                 + " }";
     }
 
