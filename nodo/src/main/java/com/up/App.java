@@ -1,9 +1,9 @@
 package com.up;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -32,8 +32,9 @@ public class App {
                 .stream()
                 .map(v -> Integer.valueOf(v, 10))
                 .collect(Collectors.toList());
-        String addr = config.get_section_value("nodes", "addr").get(0);
+        String addr = config.get_first_section_value("nodes", "addr");
 
+        /* Random delay to enable Node sync on startup */
         long delay = Math.abs(new Random().nextLong()) % 5000;
         System.out.println("Sleeping " + delay);
         Thread.sleep(delay);
@@ -45,18 +46,13 @@ public class App {
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                socket
-                        .getOutputStream()
-                        .write(
-                                MessageBuilder
-                                        .Identificacion(TipoConexion.Nodo, server.getLocalPort())
-                                        .toBytes());
+                Messenger.send(out, MessageBuilder.Identificate(TipoConexion.Nodo, server.getLocalPort()));
+                Conexion conexion = new Conexion(socket, Messenger.read(in));
 
-                InputStream in = socket.getInputStream();
-                Conexion conexion = new Conexion(socket, new Message(in));
-                if (!conexion.isValid() ||
-                        !conexiones.addContection(conexion, socket)) {
+                if (!conexion.isValid() || !conexiones.addConnection(conexion, socket)) {
                     socket.close();
                     continue;
                 }
@@ -73,10 +69,10 @@ public class App {
                 try {
                     Socket socket = server.accept();
 
-                    InputStream in = socket.getInputStream();
-                    Conexion conexion = new Conexion(socket, new Message(in));
+                    DataInputStream in = new DataInputStream(socket.getInputStream());
+                    Conexion conexion = new Conexion(socket, Messenger.read(in));
                     if (!conexion.isValid() ||
-                            !conexiones.addContection(conexion, socket)) {
+                            !conexiones.addConnection(conexion, socket)) {
                         socket.close();
                         continue;
                     }
@@ -85,7 +81,7 @@ public class App {
                             .getOutputStream()
                             .write(
                                     MessageBuilder
-                                            .Identificacion(TipoConexion.Nodo, server.getLocalPort())
+                                            .Identificate(TipoConexion.Nodo, server.getLocalPort())
                                             .toBytes());
 
                     Thread handle = new Thread(() -> handle(conexiones, socket, conexion, in));
@@ -106,15 +102,15 @@ public class App {
         }
     }
 
-    private static void handle(Conexiones conexiones, Socket socket, Conexion conexion, InputStream in) {
+    private static void handle(Conexiones conexiones, Socket socket, Conexion conexion, DataInputStream in) {
         while (true) {
             try {
-                Message ms = new Message(in);
+                Message ms = Messenger.read(in);
                 switch (conexion.getTipo()) {
                     case TipoConexion.Nodo:
-                        conexiones.clientes_solicitantes.forEach((con, sock) -> {
+                        conexiones.clients_requesters.forEach((con, sock) -> {
                             try {
-                                OutputStream out = sock.getOutputStream();
+                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
                                 out.write(ms.toBytes());
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -124,15 +120,15 @@ public class App {
                     case TipoConexion.CelulaServer:
                         conexiones.nodos.forEach((con, sock) -> {
                             try {
-                                OutputStream out = sock.getOutputStream();
+                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
                                 out.write(ms.toBytes());
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         });
-                        conexiones.clientes_solicitantes.forEach((con, sock) -> {
+                        conexiones.clients_requesters.forEach((con, sock) -> {
                             try {
-                                OutputStream out = sock.getOutputStream();
+                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
                                 out.write(ms.toBytes());
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -144,14 +140,14 @@ public class App {
                         break;
                 }
             } catch (IOException e) {
-                // e.printStackTrace();
+                conexiones.rmConnection(conexion);
+
                 try {
                     socket.close();
                 } catch (IOException e1) {
-                    // e1.printStackTrace();
                 }
 
-                conexiones.rmConnection(conexion);
+                return;
             }
         }
     }
@@ -194,13 +190,13 @@ public class App {
 
 class Conexiones {
     HashMap<Conexion, Socket> nodos;
-    HashMap<Conexion, Socket> clientes_servidores;
-    HashMap<Conexion, Socket> clientes_solicitantes;
+    HashMap<Conexion, Socket> clients_servers;
+    HashMap<Conexion, Socket> clients_requesters;
 
     public Conexiones() {
         this.nodos = new HashMap<Conexion, Socket>();
-        this.clientes_servidores = new HashMap<Conexion, Socket>();
-        this.clientes_solicitantes = new HashMap<Conexion, Socket>();
+        this.clients_servers = new HashMap<Conexion, Socket>();
+        this.clients_requesters = new HashMap<Conexion, Socket>();
     }
 
     public void rmConnection(Conexion con) {
@@ -211,18 +207,18 @@ class Conexiones {
                 break;
             case TipoConexion.CelulaConsumer:
                 System.out.println("Eliminando celula: " + con);
-                this.clientes_solicitantes.remove(con);
+                this.clients_requesters.remove(con);
                 break;
             case TipoConexion.CelulaServer:
                 System.out.println("Eliminando celula: " + con);
-                this.clientes_servidores.remove(con);
+                this.clients_servers.remove(con);
                 break;
             default:
                 return;
         }
     }
 
-    public boolean addContection(Conexion con, Socket socket) {
+    public boolean addConnection(Conexion con, Socket socket) {
         switch (con.getTipo()) {
             case TipoConexion.Nodo:
                 if (this.nodos.keySet().stream().anyMatch(x -> x.getId() == con.getId())) {
@@ -233,11 +229,11 @@ class Conexiones {
                 break;
             case TipoConexion.CelulaConsumer:
                 System.out.println("Nueva celula: " + con);
-                this.clientes_solicitantes.put(con, socket);
+                this.clients_requesters.put(con, socket);
                 break;
             case TipoConexion.CelulaServer:
                 System.out.println("Nueva celula: " + con);
-                this.clientes_servidores.put(con, socket);
+                this.clients_servers.put(con, socket);
                 break;
             default:
                 System.out.println("Descartando conexión no identificada\n:    " + con);

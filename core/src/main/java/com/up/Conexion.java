@@ -24,7 +24,7 @@ public class Conexion {
     }
 
     public Conexion(Socket socket, Message msg) {
-        if (msg.tipo != TipoMensaje.Identificacion || msg.len != 5 || !TipoConexion.ValorEnRango(msg.msg[0]))
+        if (msg.tipo != MessageType.Identificate || msg.len() != 5 || !TipoConexion.ValorEnRango(msg.msg[0]))
             return;
 
         this.port = socket.getPort();

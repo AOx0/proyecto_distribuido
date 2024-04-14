@@ -1,15 +1,11 @@
 package com.up;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-/**
- * Hello world!
- *
- */
 public class App 
 {
     public static void main( String[] args ) throws NumberFormatException, UnknownHostException, IOException, InterruptedException
@@ -22,19 +18,18 @@ public class App
         String port = args[2];
 
         Socket socket = new Socket(addr, Integer.valueOf(port, 10));
-        OutputStream out = socket.getOutputStream();
-        InputStream in = socket.getInputStream();
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        Message ident = MessageBuilder.Identificacion(TipoConexion.CelulaServer, Integer.valueOf(port, 10));
-        out.write(ident.toBytes());
+        Message ident = MessageBuilder.Identificate(TipoConexion.CelulaServer, Integer.valueOf(port, 10));
+        Messenger.send(out, ident);
 
-        Conexion con = new Conexion(socket, new Message(in));
-
+        Conexion con = new Conexion(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        while (true) {
-            out.write(ident.toBytes());
-        	Thread.sleep(500);
-        }
+        // while (true) {
+            Messenger.send(out, ident);
+        	// Thread.sleep(500);
+        // }
     }
 }

@@ -5,13 +5,13 @@ layout {
                 args "consumer" "3333"
             }
             pane command="just" {
-                args "consumer" "3334"
-            }
-            pane command="just" {
-                args "consumer" "3335"
+                args "server" "3334"
             }
         }
         pane split_direction="horizontal" {
+            pane command="just" {
+                args "consumer" "3335"
+            }
             pane command="just" {
                 args "server" "3336"
             }
