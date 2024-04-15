@@ -44,7 +44,7 @@ public class Connection {
         if (msg.tipo != Message.MessageType.Identificate || msg.len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
             return;
 
-        this.id = UuidCreator.getTimeOrderedEpoch();
+        this.id = UuidCreator.getRandomBased();
         this.tipo = msg.msg[0];
         this.socket = socket;
     }

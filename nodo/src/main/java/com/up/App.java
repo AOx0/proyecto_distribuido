@@ -98,6 +98,7 @@ public class App {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
+                System.out.println(ms);
                 switch (connection.getTipo()) {
                     case Connection.ConnectionType.Node:
                         conexiones.send_to_clients_solvers(ms);

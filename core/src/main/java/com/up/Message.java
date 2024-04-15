@@ -1,5 +1,6 @@
 package com.up;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -33,6 +34,24 @@ public class Message {
             };
         }
     }
+
+    public static final class RequestType {
+        public static final byte Add = 1;
+        public static final byte Sub = 2;
+        public static final byte Div = 3;
+        public static final byte Times = 4;
+
+        public static final String toString(byte type) {
+            return switch (type) {
+                case RequestType.Add -> "Add";
+                case RequestType.Sub -> "Sub";
+                case RequestType.Div -> "Div";
+                case RequestType.Times -> "Times";
+                default -> "Err";
+            };
+        }
+    }
+    
     
 
     public static UUID get_default_uuid() {
@@ -93,11 +112,15 @@ public class Message {
             case MessageType.Identificate:
                 res += ", connection: ";
                 res += Connection.ConnectionType.toString(this.msg[0]);
-                res += ", id: ";
-                res += java.nio.ByteBuffer.wrap(Arrays.copyOfRange(msg, 1, 5)).getInt();
                 break;
             case MessageType.Request:
+                res += ", op: " + RequestType.toString(this.msg[0]);
+                res += ", lhs: " + ByteBuffer.wrap(Arrays.copyOfRange(msg, 1, 9)).getDouble();
+                res += ", rhs: " + ByteBuffer.wrap(Arrays.copyOfRange(msg, 0xa, 0x12)).getDouble();
+                break;
             case MessageType.Response:
+                res += ", res: " + ByteBuffer.wrap(msg).getDouble();
+                break;
             default:
                 res += ", msg: [ ";
                 for (byte b : this.msg) {
