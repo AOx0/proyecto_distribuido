@@ -3,10 +3,9 @@ package com.up;
 import java.nio.ByteBuffer;
 
 public class MessageBuilder {
-    public static final Message Identificate(byte tipo, int id) {
-        ByteBuffer b = ByteBuffer.allocate(5);
+    public static final Message Identificate(byte tipo) {
+        ByteBuffer b = ByteBuffer.allocate(1);
         b.put(tipo);
-        b.putInt(id);
         return new Message(MessageType.Identificate, b.array());
     }
 

@@ -40,15 +40,14 @@ public class App {
 
         ServerSocket server = createServerSocket(ports);
         for (Integer port : ports) {
-            if (port == server.getLocalPort()
-                    || connections.nodes.stream().anyMatch(k -> k.getId() == port))
+            if (port == server.getLocalPort())
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
+                Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node));
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
@@ -75,7 +74,7 @@ public class App {
                     }
 
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node, server.getLocalPort()));
+                    Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node));
 
                     Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);

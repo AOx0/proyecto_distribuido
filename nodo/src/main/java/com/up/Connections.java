@@ -76,9 +76,6 @@ class Connections {
     public boolean addConnection(Connection con, Socket socket) {
         switch (con.getTipo()) {
             case ConnectionType.Node:
-                if (this.nodes.stream().anyMatch(x -> x.getId() == con.getId())) {
-                    return false;
-                }
                 System.out.println("New node: " + con);
                 this.nodes.add(con);
                 break;
