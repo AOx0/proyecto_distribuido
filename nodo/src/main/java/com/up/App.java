@@ -41,7 +41,7 @@ public class App {
         ServerSocket server = createServerSocket(ports);
         for (Integer port : ports) {
             if (port == server.getLocalPort()
-                    || connections.nodes.keySet().stream().anyMatch(k -> k.getId() == port))
+                    || connections.nodes.stream().anyMatch(k -> k.getId() == port))
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
@@ -99,36 +99,22 @@ public class App {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
+                System.out.println(ms);
                 switch (conexion.getTipo()) {
                     case ConnectionType.Node:
-                        conexiones.clients_requesters.forEach((con, sock) -> {
-                            try {
-                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                Messenger.send(out, ms);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        conexiones.send_to_clients_requesters(ms);
+                        conexiones.send_to_clients_solvers(ms);
                         break;
-                    case ConnectionType.ClientServer:
-                        conexiones.nodes.forEach((con, sock) -> {
-                            try {
-                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                Messenger.send(out, ms);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
-                        conexiones.clients_requesters.forEach((con, sock) -> {
-                            try {
-                                DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-                                Messenger.send(out, ms);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
+                    case ConnectionType.ClientRequester:
+                        ms.setOrigin(conexion);
+                        conexiones.send_to_nodes(ms);
+                        conexiones.send_to_clients_solvers(ms);
                         break;
-                    case ConnectionType.ClientConsumer:
+                    case ConnectionType.ClientSolver:
+                        ms.setDestiny(ms.getOrigin());
+                        ms.setOrigin(conexion);
+                        if (!conexiones.send_to_clients_requesters(ms))
+                            conexiones.send_to_nodes(ms);
                     default:
                         break;
                 }

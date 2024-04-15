@@ -11,15 +11,11 @@ public class MessageType {
     static final short Response = 3;
 
     public static final String toString(short value) {
-        switch (value) {
-            case MessageType.Identificate:
-                return "Identificate";
-            case MessageType.Request:
-                return "Request";
-            case MessageType.Response:
-                return "Response";
-            default:
-                return "ERR";
-        }
+        return switch (value) {
+            case MessageType.Identificate -> "Identificate";
+            case MessageType.Request -> "Request";
+            case MessageType.Response -> "Response";
+            default -> "ERR";
+        };
     }
 }

@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * Hello world!
+ *
+ */
 public class App 
 {
     public static void main( String[] args ) throws NumberFormatException, UnknownHostException, IOException, InterruptedException
     {
         if (args.length < 3) {
-            System.err.println("Error: No se especificó dirección y puerto.\n\n    Uso: celula_servidor <ADDR> <PORT>");
+            System.err.println("Error: No se especificó dirección y puerto.\n\n    Uso: celula_solicitante <ADDR> <PORT>");
         }
         
         String addr = args[1];
@@ -21,17 +25,16 @@ public class App
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        Message ident = MessageBuilder.Identificate(ConnectionType.ClientServer, Integer.valueOf(port, 10));
+        Message ident = MessageBuilder.Identificate(ConnectionType.ClientSolver, Integer.valueOf(port, 10));
         Messenger.send(out, ident);
 
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        System.in.read();
-
         while (true) {
-            Messenger.send(out, ident);
-        	Thread.sleep(2500);
+            Message req = Messenger.read(in);
+            Messenger.send(out, MessageBuilder.Restultado(req, 21.1));
+            System.out.println("Respondiendo a: " + req);
         }
     }
 }

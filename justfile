@@ -1,3 +1,9 @@
+celulas: build
+    zellij --layout .zellij/celulas.kdl
+
+nodos: build
+    zellij --layout .zellij/nodes.kdl
+
 build:
     mvn package
 
@@ -10,8 +16,3 @@ server PORT ADDR="127.0.0.1":
 consumer PORT ADDR="127.0.0.1":
     java -jar celula_solicitante/target/celula_solicitante-1.0-jar-with-dependencies.jar -- {{ADDR}} {{PORT}}
     
-celulas: build
-    zellij --layout .zellij/celulas.kdl
-
-nodos: build
-    zellij --layout .zellij/nodes.kdl
