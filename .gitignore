@@ -2,6 +2,8 @@
 .classpath
 .project
 
+reporte/target
+
 # Include compiled jar for nodo
 !nodo/target/
 nodo/target/*

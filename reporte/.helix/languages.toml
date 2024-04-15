@@ -1,0 +1,3 @@
+[language-server.tinymist]
+command = "tinymist"
+config = { exportPdf = "onType", outputPath = "$root/target/$dir/$name", typstExtraArgs = ["main.typ"] }
