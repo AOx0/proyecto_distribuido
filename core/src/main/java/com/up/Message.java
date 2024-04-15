@@ -1,34 +1,76 @@
 package com.up;
 
 import java.util.Arrays;
+import java.util.UUID;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 public class Message {
     /// Ver `MessageType`
     short tipo;
     byte msg[];
-    Connection from;
-    Connection dest;
+    UUID from;
+    UUID dest;
+
+    public static final class MessageType {
+        static final short Identificate = 1;
+        static final short Request = 2;
+        static final short Response = 3;
+
+        public static final String toString(short value) {
+            return switch (value) {
+                case MessageType.Identificate -> "Identificate";
+                case MessageType.Request -> "Request";
+                case MessageType.Response -> "Response";
+                default -> "ERR";
+            };
+        }
+    }
+    
+
+    public static UUID get_default_uuid() {
+        return UuidCreator.fromBytes(default_uuid);
+    }
+    
+    static byte default_uuid[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
     public int len() {
         return msg.length;
     }
 
+    public boolean has_from() {
+        return this.from.compareTo(Message.get_default_uuid()) != 0;
+    }
+
+    public boolean has_dest() {
+        return this.dest.compareTo(Message.get_default_uuid()) != 0;
+    }
+
+    public Message(short tipo, byte msg[], UUID dest, UUID from) {
+        this.tipo = tipo;
+        this.msg = msg;
+
+        // IMB: Aqui ambos eran from
+        this.dest = dest;
+        this.from = from;
+    }
+
     public Message(short tipo, byte msg[]) {
         this.tipo = tipo;
         this.msg = msg;
-        this.from = null;
-        this.dest = null;
+        this.from = Message.get_default_uuid();
+        this.dest = Message.get_default_uuid();
     }
 
-    public void setOrigin(Connection from) {
+    public void setOrigin(UUID from) {
         this.from = from;
     }
     
-    public Connection getOrigin() {
+    public UUID getOrigin() {
         return this.from;
     }
 
-    public void setDestiny(Connection dest) {
+    public void setDestiny(UUID dest) {
         this.dest = dest;
     }
 
@@ -43,7 +85,7 @@ public class Message {
         switch (this.tipo) {
             case MessageType.Identificate:
                 res += ", connection: ";
-                res += ConnectionType.toString(this.msg[0]);
+                res += Connection.ConnectionType.toString(this.msg[0]);
                 res += ", id: ";
                 res += java.nio.ByteBuffer.wrap(Arrays.copyOfRange(msg, 1, 5)).getInt();
                 break;

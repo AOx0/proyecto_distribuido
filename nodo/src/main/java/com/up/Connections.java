@@ -3,7 +3,6 @@ package com.up;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 class Connections {
     HashSet<Connection> nodes;
@@ -18,6 +17,7 @@ class Connections {
 
     public void send_to_nodes(Message ms) {
         this.nodes.stream().forEach(con -> {
+        System.out.println("RE SEND: " + ms);
             try {
                 Messenger.send(con.socket, ms);
             } catch (IOException e) {
@@ -26,11 +26,12 @@ class Connections {
         });
     }
 
-    public boolean send_to_clients_requesters(Message ms) {
-        AtomicBoolean sent = new AtomicBoolean(false);
+    public void send_to_clients_requesters(Message ms) {
         this.clients_requesters.stream().forEach(con -> {
-            if (ms.dest == con) {
-                sent.set(true);
+            System.out.println("TO REQ: " + ms);
+            if (ms.has_from() && ms.has_dest() && ms.dest.compareTo(con.id) == 0) {
+                System.out.println("YE REQ: " + ms);
+
                 try {
                     Messenger.send(con.socket, ms);
                 } catch (IOException e) {
@@ -38,12 +39,12 @@ class Connections {
                 }
             }
         });
-
-        return sent.get();
     }
 
     public void send_to_clients_solvers(Message ms) {
-        if (ms.dest == null) {
+        System.out.println("TO SOLV: " + ms);
+        if (!ms.has_dest() && ms.has_from()) {
+            System.out.println("YE SOLV: " + ms);
             this.clients_solvers.stream().forEach(con -> {
                 try {
                     Messenger.send(con.socket, ms);
@@ -56,15 +57,15 @@ class Connections {
 
     public void rmConnection(Connection con) {
         switch (con.getTipo()) {
-            case ConnectionType.Node:
+            case Connection.ConnectionType.Node:
                 System.out.println("Removing node: " + con);
                 this.nodes.remove(con);
                 break;
-            case ConnectionType.ClientSolver:
+            case Connection.ConnectionType.ClientSolver:
                 System.out.println("Removing celula: " + con);
                 this.clients_solvers.remove(con);
                 break;
-            case ConnectionType.ClientRequester:
+            case Connection.ConnectionType.ClientRequester:
                 System.out.println("Removing celula: " + con);
                 this.clients_requesters.remove(con);
                 break;
@@ -75,15 +76,15 @@ class Connections {
 
     public boolean addConnection(Connection con, Socket socket) {
         switch (con.getTipo()) {
-            case ConnectionType.Node:
+            case Connection.ConnectionType.Node:
                 System.out.println("New node: " + con);
                 this.nodes.add(con);
                 break;
-            case ConnectionType.ClientSolver:
+            case Connection.ConnectionType.ClientSolver:
                 System.out.println("Nueva celula: " + con);
                 this.clients_solvers.add(con);
                 break;
-            case ConnectionType.ClientRequester:
+            case Connection.ConnectionType.ClientRequester:
                 System.out.println("Nueva celula: " + con);
                 this.clients_requesters.add(con);
                 break;

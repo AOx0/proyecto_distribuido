@@ -2,18 +2,18 @@ layout {
     pane split_direction="vertical" {
         pane split_direction="horizontal" {
             pane command="just" {
-                args "consumer" "3333"
+                args "req" "3333"
             }
             pane command="just" {
-                args "server" "3334"
+                args "solver" "3334"
             }
         }
         pane split_direction="horizontal" {
             pane command="just" {
-                args "consumer" "3335"
+                args "req" "3335"
             }
             pane command="just" {
-                args "server" "3336"
+                args "solver" "3336"
             }
         }
     }

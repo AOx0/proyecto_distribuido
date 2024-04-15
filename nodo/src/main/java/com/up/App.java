@@ -47,7 +47,7 @@ public class App {
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node));
+                Messenger.send(out, BytesBuilder.Identificate(Connection.ConnectionType.Node));
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
@@ -74,7 +74,7 @@ public class App {
                     }
 
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Messenger.send(out, MessageBuilder.Identificate(ConnectionType.Node));
+                    Messenger.send(out, BytesBuilder.Identificate(Connection.ConnectionType.Node));
 
                     Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);
@@ -94,31 +94,30 @@ public class App {
         }
     }
 
-    private static void handle(Connections conexiones, Socket socket, Connection conexion, DataInputStream in) {
+    private static void handle(Connections conexiones, Socket socket, Connection connection, DataInputStream in) {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
-                System.out.println(ms);
-                switch (conexion.getTipo()) {
-                    case ConnectionType.Node:
-                        conexiones.send_to_clients_requesters(ms);
+                switch (connection.getTipo()) {
+                    case Connection.ConnectionType.Node:
                         conexiones.send_to_clients_solvers(ms);
+                        conexiones.send_to_clients_requesters(ms);
                         break;
-                    case ConnectionType.ClientRequester:
-                        ms.setOrigin(conexion);
+                    case Connection.ConnectionType.ClientRequester:
+                        ms.setOrigin(connection.id);
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;
-                    case ConnectionType.ClientSolver:
+                    case Connection.ConnectionType.ClientSolver:
                         ms.setDestiny(ms.getOrigin());
-                        ms.setOrigin(conexion);
-                        if (!conexiones.send_to_clients_requesters(ms))
-                            conexiones.send_to_nodes(ms);
+                        ms.setOrigin(connection.id);
+                        conexiones.send_to_nodes(ms);
+                        conexiones.send_to_clients_requesters(ms);
                     default:
                         break;
                 }
             } catch (IOException e) {
-                conexiones.rmConnection(conexion);
+                conexiones.rmConnection(connection);
 
                 try {
                     socket.close();
