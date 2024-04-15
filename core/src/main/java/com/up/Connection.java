@@ -6,7 +6,6 @@ import java.util.UUID;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 public class Connection {
-    /// Ver `TipoConexion`
     private byte tipo;
     Socket socket;
     UUID id;

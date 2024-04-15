@@ -5,8 +5,15 @@ import java.util.UUID;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 
+/**
+ * A message structure is as follows (in bytes):
+ *  0 1 2     4 5             C D             14 <- (20th byte)   
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * | t |  len  |     from      |      dest     |   `len` bytes of payload ...                
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *   |- `t`: Type of Message ( Identificate | Request | Response )
+ */
 public class Message {
-    /// Ver `MessageType`
     short tipo;
     byte msg[];
     UUID from;
