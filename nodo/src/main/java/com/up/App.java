@@ -8,7 +8,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 
 public class App {
     public static void main(String[] args) throws IOException, NoAvailablePort, InterruptedException {
@@ -39,6 +42,9 @@ public class App {
         Thread.sleep(delay);
 
         ServerSocket server = createServerSocket(ports);
+        UUID node_id = UuidCreator.getRandomBased();
+        System.out.println("UUID: " + node_id);
+
         for (Integer port : ports) {
             if (port == server.getLocalPort())
                 continue;
@@ -47,7 +53,9 @@ public class App {
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Messenger.send(out, BytesBuilder.Identificate(Connection.ConnectionType.Node));
+                Message identificate = BytesBuilder.Identificate(Connection.ConnectionType.Node);
+                identificate.setOrigin(node_id);
+				Messenger.send(out, identificate);
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
@@ -74,7 +82,9 @@ public class App {
                     }
 
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Messenger.send(out, BytesBuilder.Identificate(Connection.ConnectionType.Node));
+                    Message identificate = BytesBuilder.Identificate(Connection.ConnectionType.Node);
+                    identificate.setOrigin(node_id);
+					Messenger.send(out, identificate);
 
                     Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);
@@ -105,13 +115,13 @@ public class App {
                         conexiones.send_to_clients_requesters(ms);
                         break;
                     case Connection.ConnectionType.ClientRequester:
-                        ms.setOrigin(connection.id);
+                        ms.setOrigin(connection.getID());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;
                     case Connection.ConnectionType.ClientSolver:
                         ms.setDestiny(ms.getOrigin());
-                        ms.setOrigin(connection.id);
+                        ms.setOrigin(connection.getID());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_requesters(ms);
                     default:

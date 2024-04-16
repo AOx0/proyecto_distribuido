@@ -8,7 +8,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 public class Connection {
     private byte tipo;
     Socket socket;
-    UUID id;
+    private UUID id;
 
     public static final class ConnectionType {
         static final byte Unknown = 0;
@@ -30,7 +30,6 @@ public class Connection {
             };
         }
     }
-    
 
     public boolean isValid() {
         return (tipo != ConnectionType.Unknown);
@@ -40,11 +39,21 @@ public class Connection {
         return tipo;
     }
 
+    public UUID getID() {
+        return id;
+    }
+
     public Connection(Socket socket, Message msg) {
-        if (msg.tipo != Message.MessageType.Identificate || msg.len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
+        if (msg.tipo != Message.MessageType.Identificate)
+            return;
+        if (msg.len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
             return;
 
-        this.id = UuidCreator.getRandomBased();
+        if (msg.from.compareTo(Message.get_default_uuid()) != 0) {
+            this.id = msg.from;
+        } else {
+            this.id = UuidCreator.getRandomBased();
+        }
         this.tipo = msg.msg[0];
         this.socket = socket;
     }

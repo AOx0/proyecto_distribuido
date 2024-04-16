@@ -27,7 +27,7 @@ class Connections {
 
     public void send_to_clients_requesters(Message ms) {
         this.clients_requesters.stream().forEach(con -> {
-            if (ms.has_from() && ms.has_dest() && ms.dest.compareTo(con.id) == 0) {
+            if (ms.has_from() && ms.has_dest() && ms.dest.compareTo(con.getID()) == 0) {
                 try {
                     Messenger.send(con.socket, ms);
                 } catch (IOException e) {

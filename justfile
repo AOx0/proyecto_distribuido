@@ -5,7 +5,7 @@ nodos: build
     zellij --layout .zellij/nodes.kdl
 
 build:
-    mvn package
+    mvn clean package
 
 nodo:
     java -jar nodo/target/nodo-1.0-jar-with-dependencies.jar -- config.toml

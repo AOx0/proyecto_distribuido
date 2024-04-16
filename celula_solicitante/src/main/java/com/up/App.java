@@ -27,7 +27,7 @@ public class App
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        Messenger.send(out, BytesBuilder.Request(RequestType.Add, 10.0, 11.0));
+        Messenger.send(out, BytesBuilder.Request(Message.RequestType.Add, 10.0, 11.0));
         System.out.println("Mandando solicitud");
     	System.out.println("Respuesta: " + Messenger.read(in));
     }
