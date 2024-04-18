@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 /**
  * Payload byte constructor for sending ussing the Message protocol
  */
-public class BytesBuilder {
+public class MessageBuilder {
     /**
      * An identification message payload structure has the form (in bytes):
      *  0 <- (1st byte)
@@ -23,10 +23,10 @@ public class BytesBuilder {
 
     /**
      * The payload of a request message has the form (in bytes):
-     *  0 1               9 A               12 <- (18th byte)
-     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     * |t|      lhs        |       rhs       |
-     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *  0 1             8 9             10 <- (17th byte)
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |t|      lhs      |         rhs   |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      *  |- `t`: Operation type (Add | Sub | Mul | Div)
      */
     public static final Message Request(byte type, double lhs, double rhs) {

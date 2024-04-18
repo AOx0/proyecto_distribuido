@@ -21,13 +21,13 @@ public class App
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        Message ident = BytesBuilder.Identificate(Connection.ConnectionType.ClientRequester);
+        Message ident = MessageBuilder.Identificate(Connection.ConnectionType.ClientRequester);
         Messenger.send(out, ident);
 
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        Messenger.send(out, BytesBuilder.Request(Message.RequestType.Add, 10.0, 11.0));
+        Messenger.send(out, MessageBuilder.Request(Message.RequestType.Add, 10.0, 11.0));
         System.out.println("Mandando solicitud");
     	System.out.println("Respuesta: " + Messenger.read(in));
     }

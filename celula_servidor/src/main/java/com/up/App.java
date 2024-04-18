@@ -25,7 +25,7 @@ public class App {
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        Message ident = BytesBuilder.Identificate(Connection.ConnectionType.ClientSolver);
+        Message ident = MessageBuilder.Identificate(Connection.ConnectionType.ClientSolver);
         Messenger.send(out, ident);
 
         Connection con = new Connection(socket, Messenger.read(in));
@@ -33,7 +33,7 @@ public class App {
 
         while (true) {
             Message req = Messenger.read(in);
-            Messenger.send(out, BytesBuilder.Restultado(req, 21.1));
+            Messenger.send(out, MessageBuilder.Restultado(req, 21.1));
             System.out.println("Respondiendo a: " + req);
         }
     }

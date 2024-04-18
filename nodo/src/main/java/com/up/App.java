@@ -53,7 +53,7 @@ public class App {
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Message identificate = BytesBuilder.Identificate(Connection.ConnectionType.Node);
+                Message identificate = MessageBuilder.Identificate(Connection.ConnectionType.Node);
                 identificate.setOrigin(node_id);
 				Messenger.send(out, identificate);
                 Connection conexion = new Connection(socket, Messenger.read(in));
@@ -82,7 +82,7 @@ public class App {
                     }
 
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Message identificate = BytesBuilder.Identificate(Connection.ConnectionType.Node);
+                    Message identificate = MessageBuilder.Identificate(Connection.ConnectionType.Node);
                     identificate.setOrigin(node_id);
 					Messenger.send(out, identificate);
 
