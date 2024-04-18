@@ -216,30 +216,122 @@ Durante el proceso de identificación ambas máquinas intercambian información 
     
 
     line((1,-1), (1,-8))
-
-    
     line((6,-1), (6,-8))
   })
 ) <identificacion_nodo>
 
-// https://xkcd.com/1195/
-#import fletcher.shapes: diamond
-#set text(font: "Comic Neue", weight: 600)
+== Flujo de un mensaje
 
-// #{
-//   let width = 1
-//   diagram(
-//     node-stroke: 0.5pt,
-//     edge-stroke: 0.5pt,
-//     node((0,0), [Nodo], stroke: 2pt),
-//     node((2 + width,0), [Nodo], stroke: 2pt),
-//     // edge("-|>"),
-//     // node((2,0), align(center)[
-//       // Hey, wait,\ this flowchart\ is a trap!
-//     // ], shape: diamond),
-//     // edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
-//   )
-// }
+Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que realiza son:
++ Modificar el _frame_ del `Message` para anotar el `UUID` de la conexión de la que llegó el mensaje. De esta forma, podemos identificar a qué conexión se debe enviar la respuesta.
++ Reenviar el mensaje a todos los nodos conocidos.
++ Enviar el mensaje a todos los clientes servidores conocidos.
+
+#figure(
+  caption: [Proceso de identificación entre cualquier tipo de conexión y un nodo. `X` se refiere al tipo de conexión que puede ser `Node`, `ClientSolver` (Cliente Servidor) o `ClientRequester` (Cliente Solicitante).],
+  cetz.canvas({
+    import cetz.draw: *
+    set-style(mark: (end: ">"))
+
+    content((0, 0), (2, 1.4), 
+      box(align(center)[*`Cliente 4444`*], stroke: 1pt, width: 100%, height: 100%, inset: 1em)
+    )
+
+    content((5, 0), (7, 1.4), 
+      box(align(center)[*`Nodo`*], stroke: 1pt, width: 100%, height: 100%, inset: 1em)
+    )
+
+    content((10, 0), (12, 1.4), 
+      box(align(center)[*`Servidor 8888`*], stroke: 1pt, width: 100%, height: 100%, inset: 1em)
+    )
+
+    line((1, -2), (6, -2), name: "line")
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.end",
+      padding: .2,
+      anchor: "south",
+      [`Solicitud: Add 4 5`]
+    )
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.end",
+      padding: -.4,
+      anchor: "south",
+      [`from: 0000 to: 0000`]
+    )
+
+    arc((6,-3.5), start: 360deg, stop: 30deg, radius: -10pt, name: "line") 
+    content(
+      (6.8, -2.2), (10, -4.4),
+      box(align(left)[
+        El nodo agrega el `UUID` registrado para el cliente en el campo `from`.
+      ], stroke: 1pt, width: 100%, height: 100%, inset: 0.5em)
+    )
+    
+    line((6, -5.5), (11, -5.5), name: "line")
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.end",
+      padding: .2,
+      anchor: "south",
+      [`Solicitud: Add 4 5`]
+    )
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.end",
+      padding: -.4,
+      anchor: "south",
+      [`from: 4444 to: 0000`]
+    )
+
+    line((11, -7), (6, -7), name: "line")
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.start",
+      padding: .2,
+      anchor: "south",
+      [`Resultado: 9`]
+    )
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.start",
+      padding: -.4,
+      anchor: "south",
+      [`from: 4444 to: 0000`]
+    )
+
+    arc((6,-9), start: 360deg, stop: 30deg, radius: 10pt, name: "line") 
+    content(
+      (1.5, -6.7), (5.2, -10),
+      box(align(left)[
+        El nodo agrega el `UUID` registrado para el servidor en el campo `from` y pone el `UUID` original en `dest`.
+      ], stroke: 1pt, width: 100%, height: 100%, inset: 0.5em)
+    )
+
+    line((6, -11), (1, -11), name: "line")
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.start",
+      padding: .2,
+      anchor: "south",
+      [`Resultado: Nodo`]
+    )
+    content(
+      ("line.start", 2.5, "line.end"),
+      angle: "line.start",
+      padding: -.4,
+      anchor: "south",
+      [`from: 8888 to: 4444`]
+    )
+
+    line((1,-1.4), (1,-12))
+    line((6,-1.4), (6,-12))
+    line((11,-1.4), (11,-12))
+  })
+) <identificacion_nodo>
+
+
 
 #show bibliography: set heading (numbering: NUMBERING)
 
