@@ -39,15 +39,26 @@ public class Message {
         public static final byte Add = 1;
         public static final byte Sub = 2;
         public static final byte Div = 3;
-        public static final byte Times = 4;
+        public static final byte Mul = 4;
+        public static final byte Err = 5;
 
         public static final String toString(byte type) {
             return switch (type) {
                 case RequestType.Add -> "Add";
                 case RequestType.Sub -> "Sub";
                 case RequestType.Div -> "Div";
-                case RequestType.Times -> "Times";
+                case RequestType.Mul -> "Times";
                 default -> "Err";
+            };
+        }
+
+        public static final byte fromString(String op) {
+            return switch (op) {
+                case "Add" -> RequestType.Add;
+                case "Sub" -> RequestType.Sub;
+                case "Div" -> RequestType.Div;
+                case "Times" -> RequestType.Mul;
+                default -> RequestType.Err;
             };
         }
     }
@@ -115,8 +126,8 @@ public class Message {
                 break;
             case MessageType.Request:
                 res += ", op: " + RequestType.toString(this.msg[0]);
-                res += ", lhs: " + ByteBuffer.wrap(Arrays.copyOfRange(msg, 1, 9)).getDouble();
-                res += ", rhs: " + ByteBuffer.wrap(Arrays.copyOfRange(msg, 0xa, 0x12)).getDouble();
+                res += ", lhs: " + ByteBuffer.wrap(msg, 0x1, 0x8).getDouble();
+                res += ", rhs: " + ByteBuffer.wrap(msg, 0x9, 0x8).getDouble();
                 break;
             case MessageType.Response:
                 res += ", res: " + ByteBuffer.wrap(msg).getDouble();

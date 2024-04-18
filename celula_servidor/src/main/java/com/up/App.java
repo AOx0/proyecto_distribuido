@@ -33,7 +33,25 @@ public class App {
 
         while (true) {
             Message req = Messenger.read(in);
-            Messenger.send(out, MessageBuilder.Restultado(req, 21.1));
+            double lhs = MessageBuilder.GetLhs(req);
+            double rhs = MessageBuilder.GetRhs(req);
+            double result = 0;
+            switch (req.msg[0]) {
+              case Message.RequestType.Add: 
+                result = lhs + rhs;
+                break;
+              case Message.RequestType.Sub: 
+                result = lhs - rhs;
+                break;
+              case Message.RequestType.Mul: 
+                result = lhs * rhs;
+                break;
+              case Message.RequestType.Div: 
+                result = lhs / rhs;
+                break;
+            }
+            
+            Messenger.send(out, MessageBuilder.Restultado(req, result));
             System.out.println("Respondiendo a: " + req);
         }
     }

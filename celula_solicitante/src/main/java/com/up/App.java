@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 
 public class App 
 {
@@ -27,8 +29,34 @@ public class App
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        Messenger.send(out, MessageBuilder.Request(Message.RequestType.Add, 10.0, 11.0));
-        System.out.println("Mandando solicitud");
-    	System.out.println("Respuesta: " + Messenger.read(in));
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.print("Tipo de operación (Add|Sub|Div|Mul): ");
+            System.out.flush();
+
+            String opStr = scanner.nextLine();
+            byte op = Message.RequestType.fromString(opStr);
+
+            if (op == Message.RequestType.Err) {
+                System.err.println("No se especificó un tipo de operación válido");
+                continue;
+            }
+
+            try {
+                System.out.print("Operando 1: ");
+                System.out.flush();
+				double lhs = scanner.nextDouble();
+
+                System.out.print("Operando 2: ");
+                System.out.flush();
+				double rhs = scanner.nextDouble();
+
+                Messenger.send(out, MessageBuilder.Request(op, lhs, rhs));
+                System.out.println("Mandando solicitud");
+            	System.out.println("Respuesta: " + Messenger.read(in));
+			} catch (InputMismatchException e) {
+			    System.err.println("No se especificó un número válido");
+			}
+        }
     }
 }

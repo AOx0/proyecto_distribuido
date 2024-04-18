@@ -52,4 +52,12 @@ public class MessageBuilder {
         msg.from = req.from;
         return msg;
     }
+
+    public static final double GetLhs(Message req) {
+        return ByteBuffer.wrap(req.msg, 1, 8).getDouble();
+    }
+
+    public static final double GetRhs(Message req) {
+        return ByteBuffer.wrap(req.msg, 9, 8).getDouble();
+    }
 }
