@@ -8,6 +8,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 class Config {
     private HashMap<String, HashMap<String, Vector<String>>> config;
 
@@ -28,10 +31,12 @@ class Config {
     }
 }
 
-class ConfigBuilder {
+class ConfigParser {
+    private static final Logger logger = LogManager.getLogger(ConfigParser.class);
+
     public static Config parseFromFileConfig(String ruta) throws ConfigError, FileNotFoundException, IOException {
         try (BufferedReader bin = new BufferedReader(new FileReader(ruta));) {
-            return ConfigBuilder.parseConfig(bin.lines());
+            return ConfigParser.parseConfig(bin.lines());
         }
     }
 
@@ -66,26 +71,32 @@ class ConfigBuilder {
                     /* Verify assignment basic structure */
                     long num_eq = line.chars().filter(x -> x == '=').count();
                     if (num_eq != 1) {
-                        System.err.println(
-                                "Error en la línea " + line_num[0] + " de la configuración:\n"
-                                        + " " + line);
+                        logger.error(
+                                "Error en la línea " + line_num[0] + " de la configuración: `" + line + "`");
                         collect_error[0] = true;
                         return;
                     }
 
                     /* Verify the setting is defined within a section */
                     if (section[0] == null) {
-                        System.out.println(
-                                "Error: no hay definida una sección en la linea " + line_num[0] + ":\n"
-                                        + " " + line);
+                        logger.error(
+                                "No hay definida una sección en la linea " + line_num[0] + ": `" + line + "`");
+                        collect_error[0] = true;
+                        return;
                     }
 
                     /* Parse key value with the format `key = (value | [value1, value2, ...])` */
                     String[] keyval = line.split("=");
 
-                    String key = keyval[0].trim().replace("\"", "");
+                    String key = keyval[0].trim();
+                    if (!key.matches("^[a-zA-Z0-9]+$")) {
+                        logger.error("Llave inválida \"" + key + "\" en la linea " + line_num[0] + ": `" + line + "`");
+                        collect_error[0] = true;
+                        return;
+                    }
+
                     Vector<String> values = new Vector<String>();
-                    if (keyval[1].contains("[")) {
+                    if (keyval[1].contains("[") && keyval[1].contains("]")) {
                         String vals[] = keyval[1]
                                 .replace("[", "")
                                 .replace("]", "")
@@ -94,8 +105,12 @@ class ConfigBuilder {
                         for (String value : vals) {
                             values.add(value.trim().replace("\"", ""));
                         }
-                    } else {
+                    } else if (!keyval[1].contains("[") && !keyval[1].contains("]")) {
                         values.add(keyval[1].trim().replace("\"", ""));
+                    } else {
+                        logger.error("Asignación inválida en la línea " + line_num[0] + ": `" + line + "`");
+                        collect_error[0] = true;
+                        return;
                     }
 
                     config.get(section[0]).merge(key, values, (curr, past) -> {
@@ -113,8 +128,4 @@ class ConfigBuilder {
 }
 
 class ConfigError extends Exception {
-    @Override
-    public String toString() {
-        return "ConfigError []";
-    }
 }

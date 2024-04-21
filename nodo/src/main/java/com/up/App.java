@@ -22,7 +22,7 @@ public class App {
         Config config = null;
         try {
             String ruta_config = getRutaConfigArgs(args);
-            config = ConfigBuilder.parseFromFileConfig(ruta_config);
+            config = ConfigParser.parseFromFileConfig(ruta_config);
         } catch (NoConfigPath e) {
             logger.error(
                     "Error: No se especificó una ruta de configuración. Debe especificarse como argumento del programa o en la variable de entorno NODO_CONF");
@@ -45,12 +45,12 @@ public class App {
 
         /* Random delay to enable Node sync on startup */
         long delay = new Random().nextLong(1, 25) * 200 + 200;
-        System.out.println("Sleeping " + delay);
+        logger.info("Sleeping " + delay);
         Thread.sleep(delay);
 
         ServerSocket server = createServerSocket(ports);
         UUID node_id = UuidCreator.getRandomBased();
-        System.out.println("UUID: " + node_id);
+        logger.info("UUID: " + node_id);
 
         for (Integer port : ports) {
             if (port == server.getLocalPort())
@@ -118,7 +118,7 @@ public class App {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
-                System.out.println(ms);
+                logger.info(ms);
                 switch (connection.getTipo()) {
                     case Connection.ConnectionType.Node:
                         conexiones.send_to_clients_solvers(ms);
@@ -171,7 +171,7 @@ public class App {
         for (Integer port : ports) {
             try {
                 server = new ServerSocket(port);
-                System.out.println("Servidor escuchando en 127.0.0.1:" + port);
+                logger.info("Servidor escuchando en 127.0.0.1:" + port);
                 break;
             } catch (IOException e) {
                 continue;
