@@ -47,7 +47,7 @@ public class Message {
                 case RequestType.Add -> "Add";
                 case RequestType.Sub -> "Sub";
                 case RequestType.Div -> "Div";
-                case RequestType.Mul -> "Times";
+                case RequestType.Mul -> "Mul";
                 default -> "Err";
             };
         }
@@ -57,7 +57,7 @@ public class Message {
                 case "Add" -> RequestType.Add;
                 case "Sub" -> RequestType.Sub;
                 case "Div" -> RequestType.Div;
-                case "Times" -> RequestType.Mul;
+                case "Mul" -> RequestType.Mul;
                 default -> RequestType.Err;
             };
         }

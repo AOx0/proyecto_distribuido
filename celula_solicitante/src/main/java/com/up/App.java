@@ -8,14 +8,13 @@ import java.net.UnknownHostException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-public class App 
-{
-    public static void main( String[] args ) throws NumberFormatException, UnknownHostException, IOException, InterruptedException
-    {
+public class App {
+    public static void main(String[] args)
+            throws NumberFormatException, UnknownHostException, IOException, InterruptedException {
         if (args.length < 3) {
             System.err.println("Error: No se especificó dirección y puerto.\n\n    Uso: celula_servidor <ADDR> <PORT>");
         }
-        
+
         String addr = args[1];
         String port = args[2];
 
@@ -30,11 +29,20 @@ public class App
         System.out.println("Conectado exitosamente: " + con);
 
         Scanner scanner = new Scanner(System.in);
+        boolean print_msg = true;
         while (true) {
-            System.out.print("Tipo de operación (Add|Sub|Div|Mul): ");
-            System.out.flush();
+            if (print_msg) {
+                System.out.print("Tipo de operación (Add|Sub|Div|Mul): ");
+                System.out.flush();
+            } else {
+                print_msg = true;
+            }
 
             String opStr = scanner.nextLine();
+            if (opStr.isEmpty()) {
+                print_msg = false;
+                continue;
+            }
             byte op = Message.RequestType.fromString(opStr);
 
             if (op == Message.RequestType.Err) {
@@ -45,18 +53,18 @@ public class App
             try {
                 System.out.print("Operando 1: ");
                 System.out.flush();
-				double lhs = scanner.nextDouble();
+                double lhs = scanner.nextDouble();
 
                 System.out.print("Operando 2: ");
                 System.out.flush();
-				double rhs = scanner.nextDouble();
+                double rhs = scanner.nextDouble();
 
                 Messenger.send(out, MessageBuilder.Request(op, lhs, rhs));
                 System.out.println("Mandando solicitud");
-            	System.out.println("Respuesta: " + Messenger.read(in));
-			} catch (InputMismatchException e) {
-			    System.err.println("No se especificó un número válido");
-			}
+                System.out.println("Respuesta: " + Messenger.read(in));
+            } catch (InputMismatchException e) {
+                System.err.println("No se especificó un número válido");
+            }
         }
     }
 }
