@@ -1,7 +1,6 @@
 package com.up;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,20 +10,28 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.github.f4b6a3.uuid.UuidCreator;
 
 public class App {
-    public static void main(String[] args) throws IOException, NoAvailablePort, InterruptedException {
-        String ruta_config = getRutaConfigArgs(args);
+    private static final Logger logger = LogManager.getLogger(App.class);
 
+    public static void main(String[] args) throws IOException, NoAvailablePort, InterruptedException {
         Config config = null;
         try {
+            String ruta_config = getRutaConfigArgs(args);
             config = ConfigBuilder.parseFromFileConfig(ruta_config);
+        } catch (NoConfigPath e) {
+            logger.error(
+                    "Error: No se especificó una ruta de configuración. Debe especificarse como argumento del programa o en la variable de entorno NODO_CONF");
+            System.exit(1);
         } catch (ConfigError e) {
-            System.out.println("Hubo un error al intentar leer la configuración");
+            logger.error("Hubo un error al intentar leer la configuración");
             System.exit(1);
         } catch (FileNotFoundException e) {
-            System.out.println("El archivo de configuración \"" + ruta_config + "\" no existe");
+            logger.error("El archivo de configuración especificado no existe");
             System.exit(1);
         }
 
@@ -37,7 +44,7 @@ public class App {
                 .collect(Collectors.toList());
 
         /* Random delay to enable Node sync on startup */
-        long delay = Math.abs(new Random().nextLong()) % 10000;
+        long delay = new Random().nextLong(1, 25) * 200 + 200;
         System.out.println("Sleeping " + delay);
         Thread.sleep(delay);
 
@@ -50,12 +57,14 @@ public class App {
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
-                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Message identificate = MessageBuilder.Identificate(Connection.ConnectionType.Node);
-                identificate.setOrigin(node_id);
-				Messenger.send(out, identificate);
+                Message identificate = MessageBuilder
+                        .Identificate(Connection.ConnectionType.Node)
+                        .setOrigin(node_id);
+
+                Messenger.send(socket, identificate);
+
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
@@ -81,10 +90,11 @@ public class App {
                         continue;
                     }
 
-                    DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Message identificate = MessageBuilder.Identificate(Connection.ConnectionType.Node);
-                    identificate.setOrigin(node_id);
-					Messenger.send(out, identificate);
+                    Message identificate = MessageBuilder
+                            .Identificate(Connection.ConnectionType.Node)
+                            .setOrigin(node_id);
+
+                    Messenger.send(socket, identificate);
 
                     Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);
@@ -120,8 +130,9 @@ public class App {
                         conexiones.send_to_clients_solvers(ms);
                         break;
                     case Connection.ConnectionType.ClientSolver:
-                        ms.setDestiny(ms.getOrigin());
-                        ms.setOrigin(connection.getID());
+                        ms
+                                .setDestiny(ms.getOrigin())
+                                .setOrigin(connection.getID());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_requesters(ms);
                     default:
@@ -140,17 +151,14 @@ public class App {
         }
     }
 
-    public static String getRutaConfigArgs(String[] args) {
+    public static String getRutaConfigArgs(String[] args) throws NoConfigPath {
         String ruta_config = System.getenv("NODO_CONF");
 
         if (ruta_config == null || ruta_config.isEmpty()) {
             try {
                 ruta_config = args[1];
             } catch (IndexOutOfBoundsException e) {
-                System.out.println(
-                        "Error: No se especificó una ruta de configuración.\n"
-                                + "Debe especificarse como argumento del programa o en la variable de entorno NODO_CONF");
-                System.exit(1);
+                throw new NoConfigPath();
             }
         }
 
@@ -177,8 +185,7 @@ public class App {
 }
 
 class NoAvailablePort extends Exception {
-    @Override
-    public String toString() {
-        return "NoAvailablePort [ No se pudo establecer un ServerSocket con ningún puerto ]";
-    }
+}
+
+class NoConfigPath extends Exception {
 }

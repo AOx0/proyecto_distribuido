@@ -1,7 +1,6 @@
 package com.up;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.UUID;
 
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -99,16 +98,18 @@ public class Message {
         this.dest = Message.get_default_uuid();
     }
 
-    public void setOrigin(UUID from) {
+    public Message setOrigin(UUID from) {
         this.from = from;
+        return this;
     }
     
     public UUID getOrigin() {
         return this.from;
     }
 
-    public void setDestiny(UUID dest) {
+    public Message setDestiny(UUID dest) {
         this.dest = dest;
+        return this;
     }
 
     @Override
