@@ -23,12 +23,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.up</groupId>
       <artifactId>core</artifactId>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
