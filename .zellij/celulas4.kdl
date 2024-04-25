@@ -1,0 +1,20 @@
+layout {
+    pane split_direction="vertical" {
+        pane split_direction="horizontal" {
+            pane command="just" {
+                args "req" "3333"
+            }
+            pane command="just" {
+                args "req" "3334"
+            }
+        }
+        pane split_direction="horizontal" {
+            pane command="just" {
+                args "req" "3336"
+            }
+            pane command="just" {
+                args "solver" "3334"
+            }
+        }
+    }
+}

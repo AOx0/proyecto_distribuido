@@ -7,14 +7,4 @@ layout {
             args "solver" "3334"
         }
     }
-    // pane split_direction="vertical" {
-        // pane split_direction="horizontal" {
-            // pane command="just" {
-                // args "req" "3335"
-            // }
-            // pane command="just" {
-                // args "solver" "3336"
-            // }
-        // }
-    // }
 }

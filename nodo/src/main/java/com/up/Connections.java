@@ -26,15 +26,17 @@ class Connections {
     }
 
     public void send_to_clients_requesters(Message ms) {
-        this.clients_requesters.stream().forEach(con -> {
-            if (ms.has_from() && ms.has_dest() && ms.dest.compareTo(con.getID()) == 0) {
-                try {
-                    Messenger.send(con.socket, ms);
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if (ms.has_from() && ms.has_dest()) {
+            this.clients_requesters.stream().forEach(con -> {
+                if (ms.dest.compareTo(con.getID()) == 0) {
+                    try {
+                        Messenger.send(con.socket, ms);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     public void send_to_clients_solvers(Message ms) {
@@ -50,17 +52,17 @@ class Connections {
     }
 
     public void rmConnection(Connection con) {
+        String tipo = Connection.ConnectionType.toString(con.getTipo());
+		System.out.println("Removing " + tipo + ": " + con);
+
         switch (con.getTipo()) {
             case Connection.ConnectionType.Node:
-                System.out.println("Removing node: " + con);
                 this.nodes.remove(con);
                 break;
             case Connection.ConnectionType.ClientSolver:
-                System.out.println("Removing celula: " + con);
                 this.clients_solvers.remove(con);
                 break;
             case Connection.ConnectionType.ClientRequester:
-                System.out.println("Removing celula: " + con);
                 this.clients_requesters.remove(con);
                 break;
             default:
@@ -71,15 +73,12 @@ class Connections {
     public boolean addConnection(Connection con, Socket socket) {
         switch (con.getTipo()) {
             case Connection.ConnectionType.Node:
-                System.out.println("New node: " + con);
                 this.nodes.add(con);
                 break;
             case Connection.ConnectionType.ClientSolver:
-                System.out.println("Nueva celula: " + con);
                 this.clients_solvers.add(con);
                 break;
             case Connection.ConnectionType.ClientRequester:
-                System.out.println("Nueva celula: " + con);
                 this.clients_requesters.add(con);
                 break;
             default:
@@ -87,6 +86,8 @@ class Connections {
                 return false;
         }
 
+        String tipo = Connection.ConnectionType.toString(con.getTipo());
+		System.out.println("New " + tipo + ": " + con);
         return true;
     }
 }

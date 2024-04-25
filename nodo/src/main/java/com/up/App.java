@@ -49,8 +49,9 @@ public class App {
         Thread.sleep(delay);
 
         ServerSocket server = createServerSocket(ports);
+        System.out.println("Servidor escuchando en " + server.getInetAddress() + ":" + server.getLocalPort());
         UUID node_id = UuidCreator.getRandomBased();
-        logger.info("UUID: " + node_id);
+        System.out.println("UUID: " + node_id);
 
         for (Integer port : ports) {
             if (port == server.getLocalPort())
@@ -118,7 +119,7 @@ public class App {
         while (true) {
             try {
                 Message ms = Messenger.read(in);
-                logger.info(ms);
+                System.out.println(ms);
                 switch (connection.getTipo()) {
                     case Connection.ConnectionType.Node:
                         conexiones.send_to_clients_solvers(ms);
@@ -171,7 +172,6 @@ public class App {
         for (Integer port : ports) {
             try {
                 server = new ServerSocket(port);
-                logger.info("Servidor escuchando en 127.0.0.1:" + port);
                 break;
             } catch (IOException e) {
                 continue;

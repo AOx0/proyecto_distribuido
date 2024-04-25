@@ -1,6 +1,9 @@
 celulas: build
     zellij --layout .zellij/celulas.kdl
 
+celulas4: build
+    zellij --layout .zellij/celulas4.kdl
+
 nodos: build
     zellij --layout .zellij/nodes.kdl
 
