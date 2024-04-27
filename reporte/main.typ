@@ -7,6 +7,19 @@
 #set heading (numbering: NUMBERING)
 #show raw: set text(font: "JetBrainsMono NFM")
 
+#grid(
+  columns: (1fr, auto),
+  [
+    #text(weight: 900, size: 25pt, "Reporte Segundo Parcial")
+  ],
+  align(right)[
+    Daniel Alejandro Osornio López\
+    0244685\@up.edu.mx
+  ]
+)
+
+
+
 #outline(indent: true)
 
 = Introducción
@@ -25,19 +38,20 @@ El protocolo está dividido en dos capas, la capa de _mensaje_ (ver @mensaje), q
 
 == Mensaje <mensaje>
 
-Un mensaje que se transmite por la malla tiene la estructura en bytes mostrada en @estructura_mensaje.
+Un mensaje que se transmite por la red tiene la estructura en bytes mostrada en @estructura_mensaje.
 
 #figure(
   caption: [Estructura de un mensaje en bytes],
   {
-    let bits = 27
+    let bits = 35
     table(
       columns: (1fr,) * bits,
       table.cell(colspan: 2, align: center)[`type`],
       table.cell(colspan: 4, align: center)[`len`],
+      table.cell(colspan: 8, align: center)[`id`],
       table.cell(colspan: 8, align: center)[`from`],
       table.cell(colspan: 8, align: center)[`dest`],
-      table.cell(colspan: bits - (2 + 4 + 8 * 2), align: center)[`..payload`],
+      table.cell(colspan: bits - (2 + 4 + 8 * 3), align: center)[`..payload`],
       // Línea de bits vacíos
       ..{ let n = 0; while n < bits { n = n + 1; ([],) } },
       // Línea numerada de bits
@@ -55,6 +69,14 @@ Un mensaje que se transmite por la malla tiene la estructura en bytes mostrada e
     )
   }
 ) <estructura_mensaje>
+
+=== `id`
+
+El ID es un identificador único de mensaje por cliente solicitador, se emplea para mantener un control de los mensajes a los que ya se respondió para una solicitud de operación de un cliente desde los nodos.
+
+En la estructura de conexiones cada conexión tiene un ID de paquete vigente llamado `pkg`. Es un valor que se incrementa en 1 cada que se recibe una nueva respuesta.
+
+Todos los clientes solicitadores, al registrarse con un nodo, inician con un ID de mensaje actual (`pkg`) de 0. A medida que van recibiendo respuestas el número de ID actual se va incrementando en 1.
 
 === `type`
 
@@ -228,7 +250,7 @@ Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que
 + Enviar el mensaje a todos los clientes servidores conocidos.
 
 #figure(
-  caption: [Proceso de identificación entre cualquier tipo de conexión y un nodo. `X` se refiere al tipo de conexión que puede ser `Node`, `ClientSolver` (Cliente Servidor) o `ClientRequester` (Cliente Solicitante).],
+  caption: [Proceso de agregación de metadatos como es el campo `from` y `dest`, un proceso muy similar ocurre con el ID de mensaje con `Message::id` y `Connection::pkg`],
   cetz.canvas({
     import cetz.draw: *
     set-style(mark: (end: ">"))
@@ -331,8 +353,17 @@ Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que
   })
 ) <identificacion_nodo>
 
+= Conclusión
+
+Se desarrolló un programa que permite:
+- Tener una malla de nodos que transmiten mensajes
+- Registrar clientes servidores y solicitantes en los nodos
+- Administrar los mensajes de solicitud y respuesta de los clientes de forma que:
+  - Le llega el mensaje adecuado a los clientes con base en su tipo (servidor o solicitante) e identificador
+  - Le llega una sola respuesta a cada solicitud aunque existan múltiples respuestas enviadas por clientes servidores.
+- Se tiene un método para identificar clientes y nodos específicos para el manejo de mensajes
 
 
-#show bibliography: set heading (numbering: NUMBERING)
 
-#bibliography("bib.yml")
+// #show bibliography: set heading (numbering: NUMBERING)
+// #bibliography("bib.yml")

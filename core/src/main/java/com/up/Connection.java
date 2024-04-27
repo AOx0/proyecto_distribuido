@@ -2,6 +2,7 @@ package com.up;
 
 import java.net.Socket;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 
@@ -9,6 +10,7 @@ public class Connection {
     private byte tipo;
     Socket socket;
     private UUID id;
+    private AtomicLong pkgID;
 
     public static final class ConnectionType {
         static final byte Unknown = 0;
@@ -43,6 +45,14 @@ public class Connection {
         return id;
     }
 
+    public long getPkg() {
+        return this.pkgID.get();
+    }
+
+    public long setPkg(long i) {
+        return this.pkgID.compareAndExchange(i, i + 1);
+    }
+
     public Connection(Socket socket, Message msg) {
         if (msg.tipo != Message.MessageType.Identificate)
             return;
@@ -56,6 +66,7 @@ public class Connection {
         }
         this.tipo = msg.msg[0];
         this.socket = socket;
+        this.pkgID = new AtomicLong(0);
     }
 
     @Override
@@ -63,6 +74,7 @@ public class Connection {
         return "Conexion { "
                 + "addr: " + this.socket.getInetAddress() + ":" + this.socket.getPort()
                 + ", id: " + this.id
+                + ", pkg: " + this.pkgID.get()
                 + ", tipo: " + ConnectionType.toString(this.tipo)
                 + " }";
     }

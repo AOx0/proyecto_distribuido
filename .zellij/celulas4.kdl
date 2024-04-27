@@ -5,7 +5,7 @@ layout {
                 args "req" "3333"
             }
             pane command="just" {
-                args "req" "3334"
+                args "solver" "3335"
             }
         }
         pane split_direction="horizontal" {

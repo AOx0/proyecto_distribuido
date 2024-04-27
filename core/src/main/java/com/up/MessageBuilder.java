@@ -50,6 +50,7 @@ public class MessageBuilder {
         b.putDouble(result);
         Message msg = new Message(Message.MessageType.Response, b.array());
         msg.from = req.from;
+        msg.id = req.id;
         return msg;
     }
 

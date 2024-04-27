@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 /**
+ * TODO: Add curr ID 
  * A message structure is as follows (in bytes):
  *  0 1 2     4 5             C D             14 <- (20th byte)   
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -18,6 +19,7 @@ public class Message {
     byte msg[];
     UUID from;
     UUID dest;
+    long id;
 
     public static final class MessageType {
         static final short Identificate = 1;
@@ -82,9 +84,10 @@ public class Message {
         return this.dest.compareTo(Message.get_default_uuid()) != 0;
     }
 
-    public Message(short tipo, byte msg[], UUID dest, UUID from) {
+    public Message(short tipo, long id, byte msg[], UUID dest, UUID from) {
         this.tipo = tipo;
         this.msg = msg;
+        this.id = id;
 
         // IMB: Aqui ambos eran from
         this.dest = dest;
@@ -94,12 +97,18 @@ public class Message {
     public Message(short tipo, byte msg[]) {
         this.tipo = tipo;
         this.msg = msg;
+        this.id = 0;
         this.from = Message.get_default_uuid();
         this.dest = Message.get_default_uuid();
     }
 
     public Message setOrigin(UUID from) {
         this.from = from;
+        return this;
+    }
+
+    public Message setID(long id) {
+        this.id = id;
         return this;
     }
     
@@ -119,6 +128,7 @@ public class Message {
 
         res += ", from: " + from;
         res += ", dest: " + dest;
+        res += ", id: " + id;
         
         switch (this.tipo) {
             case MessageType.Identificate:

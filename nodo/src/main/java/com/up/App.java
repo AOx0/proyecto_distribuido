@@ -126,7 +126,10 @@ public class App {
                         conexiones.send_to_clients_requesters(ms);
                         break;
                     case Connection.ConnectionType.ClientRequester:
-                        ms.setOrigin(connection.getID());
+                        // Marcamos el mensaje con un ID único para este cliente
+                        ms
+                                .setOrigin(connection.getID())
+                                .setID(connection.getPkg());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;
