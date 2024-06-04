@@ -79,6 +79,7 @@ public class App {
         System.out.println("UUID: " + node_id);
 
         for (Integer port : ports) {
+            System.err.println("Intentando con " + port);
             if (port == server.getLocalPort())
                 continue;
             try {
@@ -87,15 +88,17 @@ public class App {
 
                 Message identificate = MessageBuilder
                         .Identificate(Connection.ConnectionType.Node)
-                        .setOrigin(node_id);
+                        .setDestiny(node_id);
 
                 Messenger.send(socket, identificate);
 
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
+                    System.err.println("Error con conexion " + conexion);
                     continue;
                 }
+                System.out.println("Nueva conexion " + conexion);
 
                 Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                 handle.setName("Handle " + conexion);
@@ -113,12 +116,14 @@ public class App {
                     Connection conexion = new Connection(socket, Messenger.read(in));
                     if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                         socket.close();
+                        System.err.println("Error con conexion " + conexion);
                         continue;
                     }
+                    System.out.println("Nueva conexion " + conexion);
 
                     Message identificate = MessageBuilder
                             .Identificate(Connection.ConnectionType.Node)
-                            .setOrigin(node_id);
+                            .setDestiny(node_id);
 
                     Messenger.send(socket, identificate);
 
@@ -153,15 +158,12 @@ public class App {
                     case Connection.ConnectionType.ClientRequester:
                         // Marcamos el mensaje con un ID único para este cliente
                         ms
-                                .setOrigin(connection.getID())
+                                .setDestiny(connection.getID())
                                 .setID(connection.getPkg());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;
                     case Connection.ConnectionType.ClientSolver:
-                        ms
-                                .setDestiny(ms.getOrigin())
-                                .setOrigin(connection.getID());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_requesters(ms);
                     default:

@@ -8,16 +8,15 @@ import com.github.f4b6a3.uuid.UuidCreator;
 /**
  * TODO: Add curr ID 
  * A message structure is as follows (in bytes):
- *  0 1 2     4 5             C D             14 <- (20th byte)   
+ *  0 1 2     4 5             C D               
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | t |  len  |     from      |      dest     |   `len` bytes of payload ...                
+ * | t |  len  |      dest     |   `len` bytes of payload ...                
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *   |- `t`: Type of Message ( Identificate | Request | Response )
  */
 public class Message {
     short tipo;
     byte msg[];
-    UUID from;
     UUID dest;
     long id;
 
@@ -76,35 +75,22 @@ public class Message {
         return msg.length;
     }
 
-    public boolean has_from() {
-        return this.from.compareTo(Message.get_default_uuid()) != 0;
-    }
-
     public boolean has_dest() {
         return this.dest.compareTo(Message.get_default_uuid()) != 0;
     }
 
-    public Message(short tipo, long id, byte msg[], UUID dest, UUID from) {
+    public Message(short tipo, long id, byte msg[], UUID dest) {
         this.tipo = tipo;
         this.msg = msg;
         this.id = id;
-
-        // IMB: Aqui ambos eran from
         this.dest = dest;
-        this.from = from;
     }
 
     public Message(short tipo, byte msg[]) {
         this.tipo = tipo;
         this.msg = msg;
         this.id = 0;
-        this.from = Message.get_default_uuid();
         this.dest = Message.get_default_uuid();
-    }
-
-    public Message setOrigin(UUID from) {
-        this.from = from;
-        return this;
     }
 
     public Message setID(long id) {
@@ -112,10 +98,6 @@ public class Message {
         return this;
     }
     
-    public UUID getOrigin() {
-        return this.from;
-    }
-
     public Message setDestiny(UUID dest) {
         this.dest = dest;
         return this;
@@ -126,7 +108,6 @@ public class Message {
         String res = "Message { tipo: ";
         res += MessageType.toString(this.tipo);
 
-        res += ", from: " + from;
         res += ", dest: " + dest;
         res += ", id: " + id;
         

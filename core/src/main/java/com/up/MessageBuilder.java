@@ -49,7 +49,7 @@ public class MessageBuilder {
         ByteBuffer b = ByteBuffer.allocate(8);
         b.putDouble(result);
         Message msg = new Message(Message.MessageType.Response, b.array());
-        msg.from = req.from;
+        msg.dest = req.dest;
         msg.id = req.id;
         return msg;
     }

@@ -59,8 +59,8 @@ public class Connection {
         if (msg.len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
             return;
 
-        if (msg.from.compareTo(Message.get_default_uuid()) != 0) {
-            this.id = msg.from;
+        if (msg.dest.compareTo(Message.get_default_uuid()) != 0) {
+            this.id = msg.dest;
         } else {
             this.id = UuidCreator.getRandomBased();
         }
