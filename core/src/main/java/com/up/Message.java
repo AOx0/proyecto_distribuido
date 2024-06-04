@@ -16,7 +16,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 public class Message {
     short tipo;
     short dest;
-    long event_id;
+    byte event_id[];
     byte msg[];
 
     public static final class MessageType {
@@ -85,11 +85,15 @@ public class Message {
     
     static byte default_uuid[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    public int len() {
-        return msg.length;
+    public int msg_len() {
+        return this.msg.length;
     }
 
-    public Message(short tipo, long id, byte msg[], short dest) {
+    public int evt_len() {
+        return this.event_id.length;
+    }
+
+    public Message(short tipo, byte id[], byte msg[], short dest) {
         this.tipo = tipo;
         this.msg = msg;
         this.event_id = id;
@@ -99,11 +103,11 @@ public class Message {
     public Message(short tipo, byte msg[], short dest) {
         this.tipo = tipo;
         this.msg = msg;
-        this.event_id = 0;
+        this.event_id = new byte[8];
         this.dest = dest;
     }
 
-    public Message setID(long id) {
+    public Message setID(byte id[]) {
         this.event_id = id;
         return this;
     }
@@ -114,7 +118,7 @@ public class Message {
         res += MessageType.toString(this.tipo);
 
         res += ", dest: " + MessageTarget.toString(this.dest);
-        res += ", id: " + event_id;
+        res += ", id: " + Connection.displayID(event_id);
         
         switch (this.tipo) {
             case MessageType.Identificate:

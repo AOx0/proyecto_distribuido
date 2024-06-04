@@ -1,12 +1,15 @@
 package com.up;
 
 import java.net.Socket;
-import java.util.concurrent.atomic.AtomicLong;
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Connection {
     private byte tipo;
     Socket socket;
-    private AtomicLong pkgID;
+    int id;
+    private AtomicInteger pkgID;
 
     public static final class ConnectionType {
         static final byte Unknown = 0;
@@ -37,30 +40,64 @@ public class Connection {
         return tipo;
     }
 
-    public long getPkg() {
+    public byte[] getCID() {
+        ByteBuffer b = ByteBuffer.allocate(8);
+        b.putInt(this.id);
+        b.putInt(this.getPkg());
+
+        return b.array();
+    }
+
+    public byte[] getID() {
+        ByteBuffer b = ByteBuffer.allocate(4);
+        b.putInt(this.id);
+
+        return b.array();
+    }
+
+    public int getPkg() {
         return this.pkgID.get();
     }
 
-    public long setPkg(long i) {
+    public int setPkg(int i) {
         return this.pkgID.compareAndExchange(i, i + 1);
     }
 
     public Connection(Socket socket, Message msg) {
         if (msg.tipo != Message.MessageType.Identificate)
             return;
-        if (msg.len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
+        if (msg.msg_len() != 1 || !ConnectionType.ValorEnRango(msg.msg[0]))
             return;
 
+        SecureRandom random = new SecureRandom();
+
+        this.id = random.nextInt();
         this.tipo = msg.msg[0];
         this.socket = socket;
-        this.pkgID = new AtomicLong(0);
+        this.pkgID = new AtomicInteger(0);
+    }
+
+    public static String displayID(byte id[]) {
+        String ids = "";
+        int i = 0;
+        for (byte b: id) {
+            ids += String.format("%02X", b);
+            i += 1;
+
+            if (i < id.length && i % 2 == 0) {
+                ids += ":";
+            }
+        }
+
+        return ids;
     }
 
     @Override
     public String toString() {
         return "Conexion { "
                 + "addr: " + this.socket.getInetAddress() + ":" + this.socket.getPort()
-                + ", pkg: " + this.pkgID.get()
+                + ", pkg: " + String.format("%04X", this.pkgID.get())
+                + ", id: " + displayID(this.getID())
                 + ", tipo: " + ConnectionType.toString(this.tipo)
                 + " }";
     }

@@ -90,7 +90,6 @@ public class App {
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                     socket.close();
-                    System.err.println("Error con conexion " + conexion);
                     continue;
                 }
 
@@ -110,7 +109,6 @@ public class App {
                     Connection conexion = new Connection(socket, Messenger.read(in));
                     if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
                         socket.close();
-                        System.err.println("Error con conexion " + conexion);
                         continue;
                     }
 
@@ -145,7 +143,7 @@ public class App {
                         conexiones.send_to_clients_requesters(ms);
                         break;
                     case Connection.ConnectionType.ClientRequester:
-                        ms.setID(connection.getPkg());
+                        ms.setID(connection.getCID());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;

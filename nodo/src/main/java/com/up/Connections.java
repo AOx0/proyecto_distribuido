@@ -2,6 +2,7 @@ package com.up;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 
 class Connections {
@@ -28,7 +29,11 @@ class Connections {
     public void send_to_clients_requesters(Message ms) {
         if (ms.dest == Message.MessageTarget.Client) {
             this.clients_requesters.stream().forEach(con -> {
-                if (con.setPkg(ms.event_id) == ms.event_id) {
+                ByteBuffer wrapped = ByteBuffer.wrap(ms.event_id);
+                int id = wrapped.getInt(0);
+                int pkg = wrapped.getInt(4);
+
+                if (con.id == id && con.setPkg(pkg) == pkg) {
                     try {
                         Messenger.send(con.socket, ms);
                     } catch (IOException e) {
