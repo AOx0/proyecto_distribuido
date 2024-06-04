@@ -56,7 +56,7 @@ public class App {
                 .collect(Collectors.toList());
 
             if (range.size() > 2) {
-                logger.error("El valor de ports_range debe ser una lista con dos elementos");
+                logger.error("El valor de ports_range espera una lista con dos elementos");
                 System.exit(1);
             }
 
@@ -79,18 +79,13 @@ public class App {
         System.out.println("UUID: " + node_id);
 
         for (Integer port : ports) {
-            System.err.println("Intentando con " + port);
             if (port == server.getLocalPort())
                 continue;
             try {
                 Socket socket = new Socket(addr, port);
                 DataInputStream in = new DataInputStream(socket.getInputStream());
 
-                Message identificate = MessageBuilder
-                        .Identificate(Connection.ConnectionType.Node)
-                        .setDestiny(node_id);
-
-                Messenger.send(socket, identificate);
+                Messenger.send(socket, MessageBuilder.Identificate(Connection.ConnectionType.Node));
 
                 Connection conexion = new Connection(socket, Messenger.read(in));
                 if (!conexion.isValid() || !connections.addConnection(conexion, socket)) {
@@ -98,7 +93,6 @@ public class App {
                     System.err.println("Error con conexion " + conexion);
                     continue;
                 }
-                System.out.println("Nueva conexion " + conexion);
 
                 Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                 handle.setName("Handle " + conexion);
@@ -119,13 +113,8 @@ public class App {
                         System.err.println("Error con conexion " + conexion);
                         continue;
                     }
-                    System.out.println("Nueva conexion " + conexion);
 
-                    Message identificate = MessageBuilder
-                            .Identificate(Connection.ConnectionType.Node)
-                            .setDestiny(node_id);
-
-                    Messenger.send(socket, identificate);
+                    Messenger.send(socket, MessageBuilder.Identificate(Connection.ConnectionType.Node));
 
                     Thread handle = new Thread(() -> handle(connections, socket, conexion, in));
                     handle.setName("Handle " + conexion);
@@ -156,10 +145,7 @@ public class App {
                         conexiones.send_to_clients_requesters(ms);
                         break;
                     case Connection.ConnectionType.ClientRequester:
-                        // Marcamos el mensaje con un ID único para este cliente
-                        ms
-                                .setDestiny(connection.getID())
-                                .setID(connection.getPkg());
+                        ms.setID(connection.getPkg());
                         conexiones.send_to_nodes(ms);
                         conexiones.send_to_clients_solvers(ms);
                         break;

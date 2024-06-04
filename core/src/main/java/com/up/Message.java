@@ -6,19 +6,18 @@ import java.util.UUID;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 /**
- * TODO: Add curr ID 
  * A message structure is as follows (in bytes):
  *  0 1 2     4 5             C D               
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | t |  len  |      dest     |   `len` bytes of payload ...                
+ * | t |  len  |   event_id    |              dest             | `len` bytes of payload ...                
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *   |- `t`: Type of Message ( Identificate | Request | Response )
  */
 public class Message {
     short tipo;
+    short dest;
+    long event_id;
     byte msg[];
-    UUID dest;
-    long id;
 
     public static final class MessageType {
         static final short Identificate = 1;
@@ -30,6 +29,21 @@ public class Message {
                 case MessageType.Identificate -> "Identificate";
                 case MessageType.Request -> "Request";
                 case MessageType.Response -> "Response";
+                default -> "ERR";
+            };
+        }
+    }
+
+    public static final class MessageTarget {
+        static final short Node = 1;
+        static final short Server = 2;
+        static final short Client = 3;
+
+        public static final String toString(short value) {
+            return switch (value) {
+                case MessageTarget.Node -> "Node";
+                case MessageTarget.Server -> "Server";
+                case MessageTarget.Client -> "Client";
                 default -> "ERR";
             };
         }
@@ -75,31 +89,22 @@ public class Message {
         return msg.length;
     }
 
-    public boolean has_dest() {
-        return this.dest.compareTo(Message.get_default_uuid()) != 0;
-    }
-
-    public Message(short tipo, long id, byte msg[], UUID dest) {
+    public Message(short tipo, long id, byte msg[], short dest) {
         this.tipo = tipo;
         this.msg = msg;
-        this.id = id;
+        this.event_id = id;
         this.dest = dest;
     }
 
-    public Message(short tipo, byte msg[]) {
+    public Message(short tipo, byte msg[], short dest) {
         this.tipo = tipo;
         this.msg = msg;
-        this.id = 0;
-        this.dest = Message.get_default_uuid();
+        this.event_id = 0;
+        this.dest = dest;
     }
 
     public Message setID(long id) {
-        this.id = id;
-        return this;
-    }
-    
-    public Message setDestiny(UUID dest) {
-        this.dest = dest;
+        this.event_id = id;
         return this;
     }
 
@@ -108,8 +113,8 @@ public class Message {
         String res = "Message { tipo: ";
         res += MessageType.toString(this.tipo);
 
-        res += ", dest: " + dest;
-        res += ", id: " + id;
+        res += ", dest: " + MessageTarget.toString(this.dest);
+        res += ", id: " + event_id;
         
         switch (this.tipo) {
             case MessageType.Identificate:

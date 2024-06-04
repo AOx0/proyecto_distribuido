@@ -18,8 +18,6 @@
   ]
 )
 
-
-
 #outline(indent: true)
 
 = Introducción
@@ -43,15 +41,15 @@ Un mensaje que se transmite por la red tiene la estructura en bytes mostrada en 
 #figure(
   caption: [Estructura de un mensaje en bytes],
   {
-    let bits = 35
+    let bits = 25
     table(
       columns: (1fr,) * bits,
       table.cell(colspan: 2, align: center)[`type`],
-      table.cell(colspan: 4, align: center)[`len`],
-      table.cell(colspan: 8, align: center)[`id`],
-      table.cell(colspan: 8, align: center)[`from`],
-      table.cell(colspan: 8, align: center)[`dest`],
-      table.cell(colspan: bits - (2 + 4 + 8 * 3), align: center)[`..payload`],
+      table.cell(colspan: 2, align: center)[`dest`],
+      table.cell(colspan: 4, align: center)[`p_len`],
+      table.cell(colspan: 4, align: center)[`e_len`],
+      table.cell(colspan: 8, align: center)[`event_id`],
+      table.cell(colspan: bits - (2 + 4 + 4 + 8 + 2), align: center)[`..payload`],
       // Línea de bits vacíos
       ..{ let n = 0; while n < bits { n = n + 1; ([],) } },
       // Línea numerada de bits

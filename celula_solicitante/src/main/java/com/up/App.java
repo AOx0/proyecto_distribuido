@@ -28,43 +28,44 @@ public class App {
         Connection con = new Connection(socket, Messenger.read(in));
         System.out.println("Conectado exitosamente: " + con);
 
-        Scanner scanner = new Scanner(System.in);
-        boolean print_msg = true;
-        while (true) {
-            if (print_msg) {
-                System.out.print("Tipo de operación (Add|Sub|Div|Mul): ");
-                System.out.flush();
-            } else {
-                print_msg = true;
-            }
+        try (Scanner scanner = new Scanner(System.in)) {
+			boolean print_msg = true;
+			while (true) {
+			    if (print_msg) {
+			        System.out.print("Tipo de operación (Add|Sub|Div|Mul): ");
+			        System.out.flush();
+			    } else {
+			        print_msg = true;
+			    }
 
-            String opStr = scanner.nextLine();
-            if (opStr.isEmpty()) {
-                print_msg = false;
-                continue;
-            }
-            byte op = Message.RequestType.fromString(opStr);
+			    String opStr = scanner.nextLine();
+			    if (opStr.isEmpty()) {
+			        print_msg = false;
+			        continue;
+			    }
+			    byte op = Message.RequestType.fromString(opStr);
 
-            if (op == Message.RequestType.Err) {
-                System.err.println("No se especificó un tipo de operación válido");
-                continue;
-            }
+			    if (op == Message.RequestType.Err) {
+			        System.err.println("No se especificó un tipo de operación válido");
+			        continue;
+			    }
 
-            try {
-                System.out.print("Operando 1: ");
-                System.out.flush();
-                double lhs = scanner.nextDouble();
+			    try {
+			        System.out.print("Operando 1: ");
+			        System.out.flush();
+			        double lhs = scanner.nextDouble();
 
-                System.out.print("Operando 2: ");
-                System.out.flush();
-                double rhs = scanner.nextDouble();
+			        System.out.print("Operando 2: ");
+			        System.out.flush();
+			        double rhs = scanner.nextDouble();
 
-                Messenger.send(out, MessageBuilder.Request(op, lhs, rhs));
-                System.out.println("Mandando solicitud");
-                System.out.println("Respuesta: " + Messenger.read(in));
-            } catch (InputMismatchException e) {
-                System.err.println("No se especificó un número válido");
-            }
-        }
+			        Messenger.send(out, MessageBuilder.Request(op, lhs, rhs));
+			        System.out.println("Mandando solicitud");
+			        System.out.println("Respuesta: " + Messenger.read(in));
+			    } catch (InputMismatchException e) {
+			        System.err.println("No se especificó un número válido");
+			    }
+			}
+		}
     }
 }

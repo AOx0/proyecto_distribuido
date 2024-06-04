@@ -18,7 +18,7 @@ public class MessageBuilder {
     public static final Message Identificate(byte tipo) {
         ByteBuffer b = ByteBuffer.allocate(1);
         b.put(tipo);
-        return new Message(Message.MessageType.Identificate, b.array());
+        return new Message(Message.MessageType.Identificate, b.array(), Message.MessageTarget.Node);
     }
 
     /**
@@ -34,7 +34,7 @@ public class MessageBuilder {
         b.put(type);
         b.putDouble(lhs);
         b.putDouble(rhs);
-        return new Message(Message.MessageType.Request, b.array());
+        return new Message(Message.MessageType.Request, b.array(), Message.MessageTarget.Server);
     }
 
 
@@ -48,9 +48,8 @@ public class MessageBuilder {
     public static final Message Restultado(Message req, double result) {
         ByteBuffer b = ByteBuffer.allocate(8);
         b.putDouble(result);
-        Message msg = new Message(Message.MessageType.Response, b.array());
-        msg.dest = req.dest;
-        msg.id = req.id;
+        Message msg = new Message(Message.MessageType.Response, b.array(), Message.MessageTarget.Client);
+        msg.event_id = req.event_id;
         return msg;
     }
 
