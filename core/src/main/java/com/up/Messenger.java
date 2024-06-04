@@ -7,8 +7,8 @@ import java.net.Socket;
 
 class Messenger {
     public static void send(DataOutputStream out, Message msg) throws IOException {
-        out.writeShort(msg.tipo);
-        out.writeShort(msg.dest);
+        out.writeByte(msg.tipo);
+        out.writeByte(msg.dest);
         out.writeShort(msg.evt_len());
         out.write(msg.event_id);
         out.writeShort(msg.msg_len());
@@ -22,8 +22,8 @@ class Messenger {
     }
 
     public static Message read(DataInputStream in) throws IOException {
-        short tipo = in.readShort();
-        short dest = in.readShort();
+        byte tipo = in.readByte();
+        byte dest = in.readByte();
         short e_len = in.readShort(); 
         byte[] id = in.readNBytes(e_len);
         short p_len = in.readShort();

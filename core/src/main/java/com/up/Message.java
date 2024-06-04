@@ -14,15 +14,15 @@ import com.github.f4b6a3.uuid.UuidCreator;
  *   |- `t`: Type of Message ( Identificate | Request | Response )
  */
 public class Message {
-    short tipo;
-    short dest;
+    byte tipo;
+    byte dest;
     byte event_id[];
     byte msg[];
 
     public static final class MessageType {
-        static final short Identificate = 1;
-        static final short Request = 2;
-        static final short Response = 3;
+        static final byte Identificate = 1;
+        static final byte Request = 2;
+        static final byte Response = 3;
 
         public static final String toString(short value) {
             return switch (value) {
@@ -35,9 +35,9 @@ public class Message {
     }
 
     public static final class MessageTarget {
-        static final short Node = 1;
-        static final short Server = 2;
-        static final short Client = 3;
+        static final byte Node = 1;
+        static final byte Server = 2;
+        static final byte Client = 3;
 
         public static final String toString(short value) {
             return switch (value) {
@@ -93,14 +93,14 @@ public class Message {
         return this.event_id.length;
     }
 
-    public Message(short tipo, byte id[], byte msg[], short dest) {
+    public Message(byte tipo, byte id[], byte msg[], byte dest) {
         this.tipo = tipo;
         this.msg = msg;
         this.event_id = id;
         this.dest = dest;
     }
 
-    public Message(short tipo, byte msg[], short dest) {
+    public Message(byte tipo, byte msg[], byte dest) {
         this.tipo = tipo;
         this.msg = msg;
         this.event_id = new byte[8];
