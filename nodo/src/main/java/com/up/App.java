@@ -5,9 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -37,11 +40,33 @@ public class App {
 
         Connections connections = new Connections();
 
-        String addr = config.get_section_value("nodes", "addr");
-        List<Integer> ports = config.get_section_values("nodes", "ports")
+        HashMap<String, Vector<String>> nodes_section = config.get_section("nodes");
+        String addr = nodes_section.get("addr").firstElement();        
+        List<Integer> ports = null;
+       
+        if (nodes_section.get("ports") != null) {
+            ports = nodes_section.get("ports")
                 .stream()
                 .map(v -> Integer.valueOf(v, 10))
                 .collect(Collectors.toList());
+        } else if (nodes_section.get("ports_range") != null) {
+            List<Integer> range = nodes_section.get("ports_range")
+                .stream()
+                .map(v -> Integer.valueOf(v, 10))
+                .collect(Collectors.toList());
+
+            if (range.size() > 2) {
+                logger.error("El valor de ports_range debe ser una lista con dos elementos");
+                System.exit(1);
+            }
+
+            ports = new ArrayList<Integer>();
+            for (Integer i  = range.getFirst(); i <= range.getLast(); i++) {
+            	ports.add(i);
+            }
+        }
+
+        System.out.println("PORTS: " + ports);
 
         /* Random delay to enable Node sync on startup */
         long delay = new Random().nextLong(1, 25) * 200 + 200;

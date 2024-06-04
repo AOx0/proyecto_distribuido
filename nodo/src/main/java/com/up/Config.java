@@ -55,6 +55,10 @@ class ConfigParser {
                     if (line.isEmpty() || line.isBlank())
                         return;
 
+                    if (line.trim().startsWith("#")) {
+                        return;
+                    }
+
                     /* Parse section */
                     if (line.startsWith("[")
                             && line.endsWith("]")
@@ -89,7 +93,7 @@ class ConfigParser {
                     String[] keyval = line.split("=");
 
                     String key = keyval[0].trim();
-                    if (!key.matches("^[a-zA-Z0-9]+$")) {
+                    if (!key.matches("^[a-zA-Z0-9_]+$")) {
                         logger.error("Llave inválida \"" + key + "\" en la linea " + line_num[0] + ": `" + line + "`");
                         collect_error[0] = true;
                         return;

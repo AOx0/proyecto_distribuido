@@ -25,7 +25,7 @@ public class MessageBuilder {
      * The payload of a request message has the form (in bytes):
      *  0 1             8 9             10 <- (17th byte)
      * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     * |t|      lhs      |         rhs   |
+     * |t|      lhs      |      rhs      |
      * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      *  |- `t`: Operation type (Add | Sub | Mul | Div)
      */
