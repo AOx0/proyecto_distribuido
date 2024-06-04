@@ -1,24 +1,18 @@
 #import "@preview/cetz:0.2.2"
 #import "@preview/oxifmt:0.2.0": strfmt
 #import "@preview/fletcher:0.4.3" as fletcher: diagram, node, edge
+#import "template.typ": project
 
-#let NUMBERING = "1.1";
-#set text(lang: "es", region: "MX")
-#set heading (numbering: NUMBERING)
-#show raw: set text(font: "JetBrainsMono NFM")
-
-#grid(
-  columns: (1fr, auto),
-  [
-    #text(weight: 900, size: 25pt, "Reporte Segundo Parcial")
-  ],
-  align(right)[
-    Daniel Alejandro Osornio López\
-    0244685\@up.edu.mx
-  ]
+#show: project.with(
+  title: "Proyecto Final",
+  materia: "Cómputo Distribuido",
+  authors: (
+    (name: "Osornio López Daniel Alejandro", email: "0244685@up.edu.mx"),
+  ),
+  date: datetime.today().display("[month repr:long] [day], [year]"),
 )
 
-#outline(indent: true)
+#let cgray(body, ..args) = table.cell(fill: gray.lighten(70%), ..args, body)
 
 = Introducción
 
@@ -30,6 +24,7 @@ El proyecto está contenido dentro de un _pom_ general llamado `proyecto` que cu
 
 El módulo `core` define la funcionalidad compartida entre los nodos (`server`) y los clientes (`cliente_servidor` y `cliente_solicitante`), como lo es la clase `Message` que transporta los mensajes por la red de nodos (ver la @mensaje) y la estructura `MessageBuilder` que provee funciones estáticas que facilitan la creación de los distintos tipos de mensaje.
 
+#pagebreak()
 = Protocolo
 
 El protocolo está dividido en dos capas, la capa de _mensaje_ (ver @mensaje), que se encarga de controlar el envío de un mensaje en la malla y de asegurar que se entregue solo al recipiente correcto, y la capa de _aplicación_, también llamada _payload_, que son un conjunto de bits opacos para la capa de _mensaje_ con los datos necesarios para que los clientes servidores (_solvers_) y los clientes solicitantes (_requesters_) puedan comunicarse.
@@ -41,57 +36,63 @@ Un mensaje que se transmite por la red tiene la estructura en bytes mostrada en 
 #figure(
   caption: [Estructura de un mensaje en bytes],
   {
-    let bits = 25
+    let bits = 2 + 2 + 4 + 8 + 4 + 8
     table(
       columns: (1fr,) * bits,
       table.cell(colspan: 2, align: center)[`type`],
       table.cell(colspan: 2, align: center)[`dest`],
-      table.cell(colspan: 4, align: center)[`p_len`],
       table.cell(colspan: 4, align: center)[`e_len`],
-      table.cell(colspan: 8, align: center)[`event_id`],
-      table.cell(colspan: bits - (2 + 4 + 4 + 8 + 2), align: center)[`..payload`],
+      table.cell(colspan: 8, align: center)[`event...`],
+      table.cell(colspan: 4, align: center)[`p_len`],
+      table.cell(colspan: 8, align: center)[`payload...`],
+      // table.cell(colspan: bits - (2 + 4 + 4 + 8 + 2), align: center)[`..payload`],
       // Línea de bits vacíos
       ..{ let n = 0; while n < bits { n = n + 1; ([],) } },
-      // Línea numerada de bits
+      // Primeros 10 bytes
       ..{
         let n = 0
-        while n < bits {
+        while n < 14 {
           n = n + 1
-          if n == bits {
-            (table.cell(align: center, stroke: none, text(size: 8pt, `..`)),)
-          } else {
             (table.cell(align: center, stroke: none, text(size: 8pt, raw(strfmt("{0:X}", n - 1)))),)
-          }
         } 
       },
+      table.cell(align: center, stroke: none, text(size: 8pt, raw(".."))),
+      table.cell(align: center, stroke: none, text(size: 8pt, raw("e"))),
+      ..{
+        let n = 1
+        while n < 11 {
+          n = n + 1
+            (table.cell(align: center, stroke: none, text(size: 8pt, raw(strfmt("e+{0:X}", n - 1)))),)
+        } 
+      },
+      table.cell(align: center, stroke: none, text(size: 8pt, raw(".."))),
+      table.cell(align: center, stroke: none, text(size: 8pt, raw("p"))),
     )
   }
 ) <estructura_mensaje>
 
-=== `id`
-
-El ID es un identificador único de mensaje por cliente solicitador, se emplea para mantener un control de los mensajes a los que ya se respondió para una solicitud de operación de un cliente desde los nodos.
-
-En la estructura de conexiones cada conexión tiene un ID de paquete vigente llamado `pkg`. Es un valor que se incrementa en 1 cada que se recibe una nueva respuesta.
-
-Todos los clientes solicitadores, al registrarse con un nodo, inician con un ID de mensaje actual (`pkg`) de 0. A medida que van recibiendo respuestas el número de ID actual se va incrementando en 1.
-
 === `type`
 
-El tipo, o _type_, se refiere al tipo de mensaje que se está transmitiendo, los tipos de mensajes disponibles se pueden observar en la @tipos_de_mensaje.
+#grid(
+  columns: 2,
+  [
+    El tipo, o _type_, se refiere al tipo de mensaje que se está transmitiendo, los tipos de mensajes disponibles se pueden observar en la @tipos_de_mensaje.
+  ],
+  [
+    #figure(
+      caption: [Tipos de conexión],
+      table(
+        columns: (auto,) * 2,
+        cgray[Tipo], cgray(align: left)[Significado],
+        [`1`],  table.cell(align: left)[Identificación],
+        [`2`],  table.cell(align: left)[Solicitud],
+        [`3`],  table.cell(align: left)[Respuesta],
+      )
+    ) <tipos_de_mensaje>
+  ]
+)
 
-Cuando se trata de un mensaje de identificación, el proceso que está enviando el paquete puede incluir un `UUID` en el campo `from` para que el nodo que recibe la conexión lo almacene con el ID especificado. Si un `UUID` no se especifica el nodo puede asignarle un `UUID` cualquiera (ver la @from_dest).
 
-#figure(
-  caption: [Tipos de conexión],
-  table(
-    columns: (auto,) * 2,
-    [Tipo], table.cell(align: left)[Significado],
-    [`1`],  table.cell(align: left)[Identificación],
-    [`2`],  table.cell(align: left)[Solicitud],
-    [`3`],  table.cell(align: left)[Respuesta],
-  )
-) <tipos_de_mensaje>
 
 === `len`
 
@@ -127,7 +128,7 @@ Un mensaje de identificación consiste de 1 byte que contiene el tipo de conexi�
   caption: [Tipos de mensaje],
   table(
     columns: (auto,) * 2,
-    [Tipo], table.cell(align: left)[Significado],
+    cgray[Tipo], cgray(align: left)[Significado],
     [`1`],  table.cell(align: left)[`Node`],
     [`2`],  table.cell(align: left)[`ClientRequester` (o célula solicitante)],
     [`3`],  table.cell(align: left)[`ClientSolver` (o célula servidor)],
