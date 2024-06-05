@@ -21,12 +21,5 @@
     <maven.compiler.target>20</maven.compiler.target>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.github.f4b6a3</groupId>
-      <artifactId>uuid-creator</artifactId>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
 
 </project>

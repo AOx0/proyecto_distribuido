@@ -9,14 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.github.f4b6a3.uuid.UuidCreator;
 
 public class App {
     private static final Logger logger = LogManager.getLogger(App.class);
@@ -75,8 +72,6 @@ public class App {
 
         ServerSocket server = createServerSocket(ports);
         System.out.println("Servidor escuchando en " + server.getInetAddress() + ":" + server.getLocalPort());
-        UUID node_id = UuidCreator.getRandomBased();
-        System.out.println("UUID: " + node_id);
 
         for (Integer port : ports) {
             if (port == server.getLocalPort())

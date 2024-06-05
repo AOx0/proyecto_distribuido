@@ -309,7 +309,7 @@ Durante el proceso de identificación ambas máquinas intercambian información 
 == Flujo de un mensaje
 
 Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que realiza son:
-+ Modificar el _frame_ del `Message` para anotar el `UUID` de la conexión de la que llegó el mensaje. De esta forma, podemos identificar a qué conexión se debe enviar la respuesta.
++ Modificar el _frame_ del `Message` para anotar el id de la conexión de la que llegó el mensaje. De esta forma, podemos identificar a qué conexión se debe enviar la respuesta.
 + Reenviar el mensaje a todos los nodos conocidos.
 + Enviar el mensaje a todos los clientes servidores conocidos.
 

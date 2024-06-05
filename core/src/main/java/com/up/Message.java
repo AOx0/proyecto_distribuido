@@ -1,9 +1,6 @@
 package com.up;
 
 import java.nio.ByteBuffer;
-import java.util.UUID;
-
-import com.github.f4b6a3.uuid.UuidCreator;
 
 /**
  * A message structure is as follows (in bytes):
@@ -77,14 +74,6 @@ public class Message {
         }
     }
     
-    
-
-    public static UUID get_default_uuid() {
-        return UuidCreator.fromBytes(default_uuid);
-    }
-    
-    static byte default_uuid[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
     public int msg_len() {
         return this.msg.length;
     }
