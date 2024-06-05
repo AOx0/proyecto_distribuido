@@ -3,6 +3,8 @@
 #import "@preview/fletcher:0.4.3" as fletcher: diagram, node, edge
 #import "template.typ": project
 
+#show "June": "Junio"
+
 #show: project.with(
   title: "Proyecto Final",
   materia: "Cómputo Distribuido",
@@ -34,24 +36,24 @@ El protocolo está dividido en dos capas, la capa de _mensaje_ (ver @mensaje), q
 Un mensaje que se transmite por la red tiene la estructura en bytes mostrada en @estructura_mensaje.
 
 #figure(
-  caption: [Estructura de un mensaje en bytes],
+  caption: [Estructura de un mensaje en bytes, *`t`* se refiere al campo *`type`* y *`d`* se refiere al campo *`dest`*.],
   {
-    let bits = 2 + 2 + 4 + 8 + 4 + 8
+    let bits = 1 + 1 + 4 + 8 + 4 + 8
     table(
       columns: (1fr,) * bits,
-      table.cell(colspan: 2, align: center)[`type`],
-      table.cell(colspan: 2, align: center)[`dest`],
-      table.cell(colspan: 4, align: center)[`e_len`],
-      table.cell(colspan: 8, align: center)[`event...`],
-      table.cell(colspan: 4, align: center)[`p_len`],
-      table.cell(colspan: 8, align: center)[`payload...`],
+      cgray(colspan: 1, align: center)[*`t`*],
+      cgray(colspan: 1, align: center)[*`d`*],
+      cgray(colspan: 4, align: center)[*`e_len`*],
+      cgray(colspan: 8, align: center)[*`event...`*],
+      cgray(colspan: 4, align: center)[*`p_len`*],
+      cgray(colspan: 8, align: center)[*`payload...`*],
       // table.cell(colspan: bits - (2 + 4 + 4 + 8 + 2), align: center)[`..payload`],
       // Línea de bits vacíos
       ..{ let n = 0; while n < bits { n = n + 1; ([],) } },
       // Primeros 10 bytes
       ..{
         let n = 0
-        while n < 14 {
+        while n < 12 {
           n = n + 1
             (table.cell(align: center, stroke: none, text(size: 8pt, raw(strfmt("{0:X}", n - 1)))),)
         } 
@@ -75,41 +77,89 @@ Un mensaje que se transmite por la red tiene la estructura en bytes mostrada en 
 
 #grid(
   columns: 2,
+  column-gutter: 15pt,
   [
-    El tipo, o _type_, se refiere al tipo de mensaje que se está transmitiendo, los tipos de mensajes disponibles se pueden observar en la @tipos_de_mensaje.
+    El tipo o _type_, se refiere al tipo de mensaje que se está transmitiendo, los tipos de mensajes disponibles se pueden observar en la @tipos_de_mensaje.
+
+    El tipo concreto de solicitud es opaco para la capa de Mensaje y viene codificado dentro de los bytes del _payload_, de esta forma la infraestructura necesaria para enviar un mensaje no cambia a pesar de que se agreguen nuevos tipos de solicitudes.
   ],
   [
     #figure(
-      caption: [Tipos de conexión],
+      caption: [Tipos de mensaje],
       table(
         columns: (auto,) * 2,
         cgray[Tipo], cgray(align: left)[Significado],
-        [`1`],  table.cell(align: left)[Identificación],
-        [`2`],  table.cell(align: left)[Solicitud],
-        [`3`],  table.cell(align: left)[Respuesta],
+        [*`1`*],  table.cell(align: left)[Identificación],
+        [*`2`*],  table.cell(align: left)[Solicitud],
+        [*`3`*],  table.cell(align: left)[Respuesta],
       )
     ) <tipos_de_mensaje>
   ]
 )
 
+=== `dest`
 
+#grid(
+  columns: 2,
+  column-gutter: 15pt,
+  [
+    El campo `dest` o destino se refiere al tipo de célula al que va dirgido el mensaje, dependiendo del valor especificado en el campo se hará la redirección correspondiente en cada nodo para asegurar que el mensaje se entregue a la(s) célula(s) correspondiente(s).
+  ],
+  [
+    #figure(
+      caption: [Tipos de destino],
+      table(
+        columns: (auto,) * 2,
+        cgray[Tipo], cgray(align: left)[Significado],
+        [*`1`*],  table.cell(align: left)[Node],
+        [*`2`*],  table.cell(align: left)[Server],
+        [*`3`*],  table.cell(align: left)[Client],
+      )
+    ) <tipos_de_destino>
+  ],
+)
 
-=== `len`
+=== `e_len` y `event` <event>
 
-Los 4 bytes del `len` describen el tamaño del `payload` (ver @payload) del mensaje en bytes en un entero de 32 bits.
+El evento o `event` es un identificador único de tamaño variable que se usa para distinguir entre mensajes, de esta forma los clientes pueden recibir respuestas a las solicitudes que realizan y descartar los paquetes que no están dirigidos a cada uno.
 
-=== `from` y `dest` <from_dest>
+#grid(
+  columns: 2,
+  align: horizon,
+  column-gutter: 15pt,
+  [
+    Aunque en la teoría el campo `event` es de tamaño variable, en la práctica está formado por dos componentes que corresponden a `Integers`:
+    - El id de la célula de destino
+    - El número de paquete actual
+  ],
+  [
+    #figure(
+      caption: [Nomenclatura de un evento, con `C322:EAB7:0000:002A` como ejemplo.],
+      table(
+        columns: (auto,) * 3,
+        column-gutter: 0pt,
+        row-gutter: 0pt,
+        inset: 0pt,
+        table.cell(stroke: none)[*`C322:EAB7`*], 
+        table.cell(stroke: none)[*`:`*], 
+        table.cell(stroke: none)[*`0000:002A`*],
+        table.cell(stroke: none, fill: blue.lighten(50%), block(height: 3pt)[\ ]), 
+        table.cell(stroke: none, block(height: 3pt)[\ ]), 
+        table.cell(stroke: none, fill: red.lighten(50%), block(height: 3pt)[\ ]), 
+        table.cell(stroke: none, block(height: 5pt)[\ ]), 
+        table.cell(stroke: none, block(height: 5pt)[\ ]), 
+        table.cell(stroke: none, block(height: 5pt)[\ ]), 
+        table.cell(stroke: none)[#text(fill: blue.darken(10%), "ID célula")], 
+        table.cell(stroke: none)[], 
+        table.cell(stroke: none)[#text(fill: red.darken(10%), "No. msg")],
+      )
+    ) <desc_event>
+  ],
+)
 
-Cada uno de estos campos representa un identificador único de 128 bits para la máquina de destino y la máquina del que se origina el mensaje. La asignación del identificador único la realiza el nodo al que se conecta un cliente independientemente de si es un servidor o solicitador.
+El ID de célula es un entero aleatorio asignado a cada célula cuando se establece una conexión con un nodo, es gracias a este campo que un nodo puede _razonar_ sobre si debe mandar un mensaje o no a cada célula conectada al mismo. Además el número de mensaje permite que los nodos sepan en todo momento en número de mensaje esperado para cada célula almacenando estado sobre su conexión, de esta forma sabe si la célula ya ha recibido el mensaje y evitar mandar mensajes a las células que ya no son relevantes, por ejejemplo si una célula recibió una respuesta a una solicitud muy antigua cuando ya ha recibido la misma respuesta más rápido por medio de otra célula.
 
-// #highlight[Las máquinas de origen y destino solo pueden ser `ClientSolver` y `ClientRequester`, ya que entre los nodos no existe un ID único por ID.]
-
-Se considera un campo `from` y/o `dest` como no especificado cuando los 128 bits del `UUID` son ceros.
-
-Los ID son asignados por los nodos a los clientes de forma automática al tener la conexión inicial. Un ID consiste en un `UUID` versión 4, que se caracteriza por ser aleatorio.
-
-
-== Payload <payload>
+=== Payload <payload>
 
 El _payload_ es el mensaje en sí que se transmite entre los clientes, el _payload_ es transportado opacamente usando el _frame_ que provee la clase `Message` (ver la @mensaje). Los bytes que se transportan en el _payload_ permiten que los clientes intercambien solicitudes y respuestas.
 
@@ -120,24 +170,29 @@ Message solicitud = MessageBuilder.Request(Message.RequestType.Add, 10.0, 11.0);
 Messenger.send(out, solicitud);
 ```
 
-=== Identificación
+==== Identificación
 
-Un mensaje de identificación consiste de 1 byte que contiene el tipo de conexión de la dirección que realiza la solicitud. Los tipos de conexión se muestran en la @tipos_de_conexion.
+#grid(
+  columns: 2,
+  column-gutter: 15pt,
+  [
+    Un mensaje de identificación consiste de 1 byte que contiene el tipo de conexión de la dirección que realiza la solicitud. Los tipos de conexión se muestran en la @tipos_de_conexion.
+  ],
+  [
+    #figure(
+      caption: [Tipos de conexiones],
+      table(
+        columns: (auto,) * 2,
+        cgray[Tipo], cgray(align: left)[Significado],
+        [*`1`*],  table.cell(align: left)[`Node`],
+        [*`2`*],  table.cell(align: left)[`ClientRequester` (o célula solicitante)],
+        [*`3`*],  table.cell(align: left)[`ClientSolver` (o célula servidor)],
+      )
+    ) <tipos_de_conexion>
+  ]
+)
 
-#figure(
-  caption: [Tipos de mensaje],
-  table(
-    columns: (auto,) * 2,
-    cgray[Tipo], cgray(align: left)[Significado],
-    [`1`],  table.cell(align: left)[`Node`],
-    [`2`],  table.cell(align: left)[`ClientRequester` (o célula solicitante)],
-    [`3`],  table.cell(align: left)[`ClientSolver` (o célula servidor)],
-  )
-) <tipos_de_conexion>
-
-=== Solicitud
-
-Un mensaje de solicitud consta de 17 bytes, el primero indica el tipo de operación, y le sigue la representación de los dos argumentos de la operación de 64 bits cada uno correspondiente a `doubles` como se ve en la @estructura_solicitud. Los tipos de operaciones soportados se pueden ver en la @tipos_de_op.
+==== Solicitud
 
 #figure(
   caption: [Estructura de una solicitud.],
@@ -145,9 +200,9 @@ Un mensaje de solicitud consta de 17 bytes, el primero indica el tipo de operaci
     let bits = 17
     table(
       columns: (1fr,) * bits,
-      table.cell(colspan: 1, align: center)[`op`],
-      table.cell(colspan: 8, align: center)[`lhs`],
-      table.cell(colspan: 8, align: center)[`rhs`],
+      cgray(colspan: 1, align: center)[*`op`*],
+      cgray(colspan: 8, align: center)[*`lhs`*],
+      cgray(colspan: 8, align: center)[*`rhs`*],
       // Línea de bits vacíos
       ..{ let n = 0; while n < bits { n = n + 1; ([],) } },
       // Línea numerada de bits
@@ -162,19 +217,29 @@ Un mensaje de solicitud consta de 17 bytes, el primero indica el tipo de operaci
   }
 ) <estructura_solicitud>
 
-#figure(
-  caption: [Tipos de operaciones],
-  table(
-    columns: (auto,) * 2,
-    [Tipo], table.cell(align: left)[Significado],
-    [`1`],  table.cell(align: left)[$+$],
-    [`2`],  table.cell(align: left)[$-$],
-    [`3`],  table.cell(align: left)[$div$],
-    [`4`],  table.cell(align: left)[$times$],
-  )
-) <tipos_de_op>
+#grid(
+  columns: 2,
+  column-gutter: 15pt,
+  [
+    Un mensaje de solicitud consta de 17 bytes, el primero indica el tipo de operación, y le sigue la representación de los dos argumentos de la operación de 64 bits cada uno correspondiente a `doubles` como se ve en la @estructura_solicitud. Los tipos de operaciones soportados se pueden ver en la @tipos_de_op.
+  ],
+  [
+    #figure(
+      caption: [Tipos de operaciones],
+      table(
+        columns: (auto,) * 2,
+        cgray[Tipo], cgray(align: left)[Significado],
+        [*`1`*],  table.cell(align: left)[Suma],
+        [*`2`*],  table.cell(align: left)[Resta],
+        [*`3`*],  table.cell(align: left)[División],
+        [*`4`*],  table.cell(align: left)[Multiplicación],
+      )
+    ) <tipos_de_op>
+  ],
+)
 
-=== Resultado
+
+==== Resultado
 
 Los bytes correspondientes al resultado son 8, conteniendo únicamente la representación binaria del número flotante de 64 bits con el resultado de la operación.
 
@@ -212,7 +277,7 @@ Durante el proceso de identificación ambas máquinas intercambian información 
       (6.8, -2), (15, -5),
       box(align(left)[
         + Almacena el `Socket` de la conexión y tipo como una instancia de `Connection`.\
-        + El constructor de `Connection` genera y asigna un `UUID` si no está especificado en el campo `from` del mensaje.
+        + El constructor de `Connection` genera y asigna un id aleatorio.
       ], stroke: 1pt, width: 100%, height: 100%, inset: 1em)
     )
 
@@ -279,14 +344,14 @@ Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que
       angle: "line.end",
       padding: -.4,
       anchor: "south",
-      [`from: 0000 to: 0000`]
+      [`dest: Server event: 0000`]
     )
 
     arc((6,-3.5), start: 360deg, stop: 30deg, radius: -10pt, name: "line") 
     content(
       (6.8, -2.2), (10, -4.4),
       box(align(left)[
-        El nodo agrega el `UUID` registrado para el cliente en el campo `from`.
+      El nodo agrega al mensaje el event correspondiente con el id y msg.
       ], stroke: 1pt, width: 100%, height: 100%, inset: 0.5em)
     )
     
@@ -303,7 +368,7 @@ Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que
       angle: "line.end",
       padding: -.4,
       anchor: "south",
-      [`from: 4444 to: 0000`]
+      [`dest: Server event: 0123`]
     )
 
     line((11, -7), (6, -7), name: "line")
@@ -319,36 +384,36 @@ Cuando un nodo recibe una solicitud por parte de un cliente solicitante, las que
       angle: "line.start",
       padding: -.4,
       anchor: "south",
-      [`from: 4444 to: 0000`]
+      [`dest: Client event: 0123`]
     )
 
-    arc((6,-9), start: 360deg, stop: 30deg, radius: 10pt, name: "line") 
-    content(
-      (1.5, -6.7), (5.2, -10),
-      box(align(left)[
-        El nodo agrega el `UUID` registrado para el servidor en el campo `from` y pone el `UUID` original en `dest`.
-      ], stroke: 1pt, width: 100%, height: 100%, inset: 0.5em)
-    )
+    // arc((6,-9), start: 360deg, stop: 30deg, radius: 10pt, name: "line") 
+    // content(
+    //   (1.5, -6.7), (5.2, -10),
+    //   box(align(left)[
+    //     El nodo agrega el `UUID` registrado para el servidor en el campo `from` y pone el `UUID` original en `dest`.
+    //   ], stroke: 1pt, width: 100%, height: 100%, inset: 0.5em)
+    // )
 
-    line((6, -11), (1, -11), name: "line")
+    line((6, -8), (1, -8), name: "line")
     content(
       ("line.start", 2.5, "line.end"),
       angle: "line.start",
       padding: .2,
       anchor: "south",
-      [`Resultado: Nodo`]
+      [`Resultado: 9`]
     )
     content(
       ("line.start", 2.5, "line.end"),
       angle: "line.start",
       padding: -.4,
       anchor: "south",
-      [`from: 8888 to: 4444`]
+      [`dest: Client event: 0123`]
     )
 
-    line((1,-1.4), (1,-12))
-    line((6,-1.4), (6,-12))
-    line((11,-1.4), (11,-12))
+    line((1,-1.4), (1,-9))
+    line((6,-1.4), (6,-9))
+    line((11,-1.4), (11,-9))
   })
 ) <identificacion_nodo>
 

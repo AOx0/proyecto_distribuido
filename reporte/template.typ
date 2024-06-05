@@ -11,7 +11,7 @@
   let sans-font = "Inria Sans"
 
   // Set body font family.
-  set text(font: body-font, lang: "es", region: "MX")
+  set text(font: body-font, lang: "es", region: "mx")
   show raw: set text(font: "JetBrainsMono NFM", ligatures: true)
 
   // Set paragraph spacing.
